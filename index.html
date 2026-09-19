@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>Neon Bounce Breaker - Quantum Odyssey</title>
+  <title>Neon Bounce Breaker - Quantum Pulse</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -28,9 +28,6 @@
     .glow-cyan {
       box-shadow: 0 0 15px rgba(6, 182, 212, 0.5);
     }
-    .glow-purple {
-      box-shadow: 0 0 15px rgba(168, 85, 247, 0.5);
-    }
     .neon-text-cyan {
       text-shadow: 0 0 8px rgba(6, 182, 212, 0.8), 0 0 16px rgba(6, 182, 212, 0.4);
     }
@@ -44,13 +41,6 @@
       display: block;
       touch-action: none;
     }
-    @keyframes pulse-banner {
-      0%, 100% { opacity: 0.3; }
-      50% { opacity: 1; }
-    }
-    .banner-pulse {
-      animation: pulse-banner 1.2s infinite ease-in-out;
-    }
   </style>
 </head>
 <body class="h-screen w-screen flex flex-col items-center justify-between bg-slate-950 px-2 py-1.5 select-none" style="padding-top: max(0.375rem, env(safe-area-inset-top)); padding-bottom: max(0.375rem, env(safe-area-inset-bottom));">
@@ -58,27 +48,27 @@
   <!-- Header HUD -->
   <header class="w-full max-w-md flex flex-col gap-1 z-10 shrink-0">
     <div class="flex items-center justify-between bg-slate-900/90 border border-slate-800/90 px-2.5 py-1.5 rounded-xl backdrop-blur">
-      <div class="flex flex-col items-start min-w-[52px]">
+      <div class="flex flex-col items-start min-w-[50px]">
         <span class="text-[9px] text-slate-400 font-orbitron tracking-wider">STAGE</span>
         <span id="stageText" class="text-base font-bold font-orbitron text-cyan-400 neon-text-cyan leading-tight">1/10</span>
       </div>
 
-      <div class="flex flex-col items-center min-w-[48px]">
+      <div class="flex flex-col items-center min-w-[46px]">
         <span class="text-[9px] text-purple-400 font-orbitron tracking-wider">🌀 WARPS</span>
         <span id="warpText" class="text-base font-black font-orbitron text-purple-300 neon-text-purple leading-tight">0</span>
       </div>
 
-      <div class="flex flex-col items-center min-w-[48px]">
+      <div class="flex flex-col items-center min-w-[46px]">
         <span class="text-[9px] text-slate-400 font-orbitron tracking-wider">SHOTS</span>
         <span id="shotsText" class="text-base font-bold font-orbitron text-amber-300 neon-text-yellow leading-tight">6</span>
       </div>
 
-      <div class="flex flex-col items-center min-w-[50px]">
+      <div class="flex flex-col items-center min-w-[48px]">
         <span class="text-[9px] text-slate-400 font-orbitron tracking-wider">BLOCKS</span>
         <span id="blocksText" class="text-base font-bold font-orbitron text-emerald-400 leading-tight">0</span>
       </div>
 
-      <div class="flex flex-col items-end min-w-[62px]">
+      <div class="flex flex-col items-end min-w-[60px]">
         <span class="text-[9px] text-slate-400 font-orbitron tracking-wider">RATING</span>
         <span id="scoreText" class="text-base font-bold font-orbitron text-pink-400 leading-tight">0</span>
       </div>
@@ -93,11 +83,6 @@
   <!-- Main Game Canvas Container -->
   <main class="relative w-full max-w-md flex-1 my-1 rounded-2xl overflow-hidden border border-slate-800/80 bg-slate-900/40 shadow-2xl flex flex-col justify-center">
     <canvas id="gameCanvas" class="w-full h-full"></canvas>
-
-    <!-- Fast-forward Badge -->
-    <div id="fastForwardBadge" class="hidden pointer-events-none absolute top-3 right-3 px-2 py-0.5 bg-amber-500/30 border border-amber-400/70 text-amber-300 font-orbitron text-[11px] font-black rounded-lg backdrop-blur shadow-lg banner-pulse">
-      ⚡ 8x HYPER SPEED
-    </div>
 
     <!-- Stage Complete Modal -->
     <div id="stageCompleteModal" class="hidden absolute inset-0 bg-black/85 backdrop-blur-md flex flex-col items-center justify-center p-6 z-30">
@@ -196,7 +181,6 @@
         </div>
       </div>
 
-      <!-- Continue button (Consumes 10 Warps) -->
       <button id="continueBtn" class="w-full max-w-xs py-3 px-4 mb-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-orbitron font-black text-xs tracking-wider shadow-lg flex items-center justify-center gap-1.5 active:scale-95 transition-all">
         <span>⚡ CONTINUE (+3 SHOTS / -10 WARPS)</span>
       </button>
@@ -209,7 +193,7 @@
 
   <!-- Bottom Helper info -->
   <div class="w-full max-w-md text-center py-0.5 text-[10px] text-slate-400/80 font-mono tracking-wide">
-    引っ張り照準 / 画面長押し: 8倍速 / ⚡コア衝突: チャージ球化
+    発射後タップ: バリア出現 / 長押し: バリア維持 (消滅後再生成可)
   </div>
 
   <!-- Footer Info Bar -->
@@ -286,14 +270,30 @@
         const osc = this.ctx.createOscillator();
         const gain = this.ctx.createGain();
         osc.type = 'sine';
-        osc.frequency.setValueAtTime(950, this.ctx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(1400, this.ctx.currentTime + 0.06);
-        gain.gain.setValueAtTime(0.12, this.ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.06);
+        osc.frequency.setValueAtTime(1020, this.ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(1600, this.ctx.currentTime + 0.07);
+        gain.gain.setValueAtTime(0.18, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.07);
         osc.connect(gain);
         gain.connect(this.ctx.destination);
         osc.start();
-        osc.stop(this.ctx.currentTime + 0.06);
+        osc.stop(this.ctx.currentTime + 0.07);
+      }
+      playDeployWall() {
+        if (!this.enabled) return;
+        this.init();
+        if (!this.ctx) return;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(300, this.ctx.currentTime);
+        osc.frequency.linearRampToValueAtTime(750, this.ctx.currentTime + 0.09);
+        gain.gain.setValueAtTime(0.12, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.09);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start();
+        osc.stop(this.ctx.currentTime + 0.09);
       }
       playWarp() {
         if (!this.enabled) return;
@@ -454,6 +454,61 @@
       }
     }
 
+    // プレイヤーが画面タップで設置する「パルスバリア」
+    class PlayerPulseWall {
+      constructor(x, y, width = 72) {
+        this.x = x;
+        this.y = y;
+        this.width = width;
+        this.life = 1.0; // 1.0 -> 0.0 (約2.5秒)
+        this.decayRate = 0.007;
+        this.isHeld = false;
+        this.hitFlash = 0;
+      }
+      update() {
+        if (!this.isHeld) {
+          this.life -= this.decayRate;
+        }
+        if (this.hitFlash > 0) {
+          this.hitFlash -= 0.08;
+        }
+        return this.life > 0;
+      }
+      draw(ctx) {
+        const halfW = this.width / 2;
+        const x1 = this.x - halfW;
+        const x2 = this.x + halfW;
+        const y = this.y;
+
+        ctx.save();
+        const alpha = Math.min(1, Math.max(0.15, this.life));
+        const isBlinking = this.life < 0.25 && !this.isHeld && Math.floor(Date.now() / 80) % 2 === 0;
+
+        ctx.globalAlpha = isBlinking ? 0.2 : alpha;
+        ctx.shadowBlur = this.hitFlash > 0 ? 25 : 15;
+        ctx.shadowColor = '#06b6d4';
+        ctx.strokeStyle = this.hitFlash > 0 ? '#ffffff' : '#22d3ee';
+        ctx.lineWidth = 5;
+        ctx.lineCap = 'round';
+
+        ctx.beginPath();
+        ctx.moveTo(x1, y);
+        ctx.lineTo(x2, y);
+        ctx.stroke();
+
+        // 芯の白色ライン
+        ctx.strokeStyle = '#e0f2fe';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // エネルギーインジケーター（バリア上部に小さく表示）
+        ctx.fillStyle = this.isHeld ? '#34d399' : '#38bdf8';
+        ctx.fillRect(this.x - halfW * this.life, y - 5, (this.width * this.life), 2);
+
+        ctx.restore();
+      }
+    }
+
     // 小型ブラックホール（画面全域をバウンド移動）
     class MiniBlackHole {
       constructor(x, y, vx, vy) {
@@ -571,7 +626,6 @@
         ctx.fill();
         ctx.stroke();
 
-        // 内部のネオンリング
         ctx.strokeStyle = '#fef08a';
         ctx.lineWidth = 1.5;
         ctx.beginPath();
@@ -601,14 +655,13 @@
         ctx.shadowBlur = 12;
         ctx.shadowColor = '#06b6d4';
         ctx.strokeStyle = '#22d3ee';
-        ctx.lineWidth = 4;
+        ctx.lineWidth = 4.5;
         ctx.lineCap = 'round';
         ctx.beginPath();
         ctx.moveTo(this.x1, this.y1);
         ctx.lineTo(this.x2, this.y2);
         ctx.stroke();
 
-        // 芯の白色ライン
         ctx.strokeStyle = '#e0f2fe';
         ctx.lineWidth = 1.5;
         ctx.stroke();
@@ -668,7 +721,6 @@
         ctx.fill();
         ctx.stroke();
 
-        // 体力ゲージ背景
         const ratio = Math.max(0.15, this.hp / this.maxHp);
         ctx.fillStyle = strokeColor;
         ctx.globalAlpha = 0.2 + ratio * 0.45;
@@ -685,7 +737,6 @@
           ctx.fillText(subSymbol, x + 3, y + 3);
         }
 
-        // HP数値
         ctx.fillStyle = '#ffffff';
         ctx.font = `900 ${cellH * 0.42}px 'Orbitron', sans-serif`;
         ctx.textAlign = 'center';
@@ -710,7 +761,7 @@
         this.radius = BALL_RADIUS;
         this.active = false;
         this.trail = [];
-        this.isCharged = false; // オーバードライブ状態
+        this.isCharged = false;
       }
       launch(vx, vy, speed = BASE_BALL_SPEED) {
         this.vx = vx * speed;
@@ -766,6 +817,7 @@
         this.blackHoles = [];
         this.movingBouncers = [];
         this.staticReflectors = [];
+        this.playerWall = null; // プレイヤー設置バリア（最大1個）
         this.particles = [];
         this.floatingTexts = [];
 
@@ -774,8 +826,6 @@
         this.isAiming = false;
 
         this.speedMultiplier = 1;
-        this.isFastForward = false;
-        this.pressTimer = null;
         this.firstLandedX = null;
 
         this.initUI();
@@ -825,7 +875,6 @@
 
         this.speedBtn = document.getElementById('speedBtn');
         this.muteBtn = document.getElementById('muteBtn');
-        this.fastForwardBadge = document.getElementById('fastForwardBadge');
 
         this.stageCompleteModal = document.getElementById('stageCompleteModal');
         this.completedStageText = document.getElementById('completedStageText');
@@ -904,34 +953,46 @@
 
         const onPointerDown = (e) => {
           sound.init();
+          const p = getCoord(e);
+
           if (this.state === 'FIRING') {
-            this.pressTimer = setTimeout(() => {
-              this.isFastForward = true;
-              this.fastForwardBadge.classList.remove('hidden');
-            }, 160);
+            // ボール飛行中: 壁がなければタップ位置に生成。存在すれば長押しホールドへ
+            if (!this.playerWall) {
+              // ブロック領域や最下部より少し上の安全域に設置
+              const safeY = Math.max(this.bounds.h * 0.45, Math.min(this.launchY - 30, p.y));
+              this.playerWall = new PlayerPulseWall(p.x, safeY);
+              this.playerWall.isHeld = true;
+              sound.playDeployWall();
+              this.floatingTexts.push(new FloatText(p.x, safeY - 14, 'BARRIER ACTIVE!', '#38bdf8', 12));
+            } else {
+              this.playerWall.isHeld = true;
+            }
             return;
           }
 
           if (this.state !== 'AIMING') return;
           this.isAiming = true;
-          const p = getCoord(e);
           this.updateAimAngle(p.x, p.y);
         };
 
         const onPointerMove = (e) => {
-          if (!this.isAiming || this.state !== 'AIMING') return;
           const p = getCoord(e);
+          if (this.state === 'FIRING' && this.playerWall && this.playerWall.isHeld) {
+            // ホールド中に指をスライドさせれば位置を微調整可能
+            this.playerWall.x = Math.max(36, Math.min(this.bounds.w - 36, p.x));
+            return;
+          }
+
+          if (!this.isAiming || this.state !== 'AIMING') return;
           this.updateAimAngle(p.x, p.y);
         };
 
         const onPointerUp = () => {
-          if (this.pressTimer) {
-            clearTimeout(this.pressTimer);
-            this.pressTimer = null;
-          }
-          if (this.isFastForward) {
-            this.isFastForward = false;
-            this.fastForwardBadge.classList.add('hidden');
+          if (this.state === 'FIRING') {
+            if (this.playerWall) {
+              this.playerWall.isHeld = false; // 指を離すと通常の自然消滅カウントダウンが再開
+            }
+            return;
           }
 
           if (this.isAiming && this.state === 'AIMING') {
@@ -976,7 +1037,6 @@
 
       useContinue() {
         this.continuesUsed++;
-        // ワープ10回分を消費ペナルティ
         this.warpCount = Math.max(0, this.warpCount - 10);
         this.shotsLeft += 3;
 
@@ -985,6 +1045,7 @@
         this.state = 'AIMING';
         this.balls = [];
         this.firstLandedX = null;
+        this.playerWall = null;
         this.updateHUD();
 
         this.floatingTexts.push(new FloatText(this.bounds.w / 2, this.launchY - 30, '⚡ CONTINUED (-10 WARPS)', '#34d399', 15));
@@ -1033,30 +1094,27 @@
         this.staticReflectors = [];
         this.movingBouncers = [];
 
-        // 前半面（Stage 2〜4）：小型の固定反射板で落下を程よく防ぐ
+        // 前半面（Stage 2〜4）：小型の固定反射板（正確な反射ベクトルで動作）
         if (this.stage >= 2 && this.stage <= 4) {
           const midY = this.bounds.h * 0.62;
-          const span = this.bounds.w * 0.28; // 幅を小さく抑えて閉じ込めを防止
+          const span = this.bounds.w * 0.28;
           if (this.stage === 2) {
-            // 中央に小さめのV字反発板
-            this.staticReflectors.push(new StaticReflectorBar(this.bounds.w * 0.36, midY + 15, this.bounds.w * 0.5, midY));
-            this.staticReflectors.push(new StaticReflectorBar(this.bounds.w * 0.5, midY, this.bounds.w * 0.64, midY + 15));
+            this.staticReflectors.push(new StaticReflectorBar(this.bounds.w * 0.36, midY + 14, this.bounds.w * 0.5, midY));
+            this.staticReflectors.push(new StaticReflectorBar(this.bounds.w * 0.5, midY, this.bounds.w * 0.64, midY + 14));
           } else if (this.stage === 3) {
-            // 左右に小さな斜めバウンス板
             this.staticReflectors.push(new StaticReflectorBar(this.bounds.w * 0.12, midY, this.bounds.w * 0.12 + span, midY - 20));
             this.staticReflectors.push(new StaticReflectorBar(this.bounds.w * 0.88 - span, midY - 20, this.bounds.w * 0.88, midY));
           } else if (this.stage === 4) {
-            // 中央下に短い水平バー
             this.staticReflectors.push(new StaticReflectorBar(this.bounds.w * 0.35, midY + 25, this.bounds.w * 0.65, midY + 25));
           }
         }
 
-        // 後半面（Stage 5〜10）：固定壁はゼロ！ブラックホール同等サイズの移動反射コアが飛び交う
+        // 後半面（Stage 5〜10）：移動反射コア
         if (this.stage >= 5) {
           const count = this.stage <= 7 ? 2 : 3;
           for (let i = 0; i < count; i++) {
             const x = (this.bounds.w / (count + 1)) * (i + 1);
-            const y = this.bounds.h * 0.45 + (i % 2 === 0 ? -25 : 35);
+            const y = this.bounds.h * 0.46 + (i % 2 === 0 ? -25 : 35);
             const vx = (Math.random() < 0.5 ? 1 : -1) * (0.8 + Math.random() * 0.6);
             const vy = (Math.random() < 0.5 ? 1 : -1) * (0.8 + Math.random() * 0.6);
             this.movingBouncers.push(new MovingBouncerCore(x, y, vx, vy));
@@ -1071,11 +1129,12 @@
         this.particles = [];
         this.floatingTexts = [];
         this.firstLandedX = null;
+        this.playerWall = null;
         this.state = 'AIMING';
 
         this.shotsLeft = Math.max(5, 7 - Math.floor((this.stage - 1) / 3));
 
-        // 5基の小型ブラックホールを初期化（画面全域をバウンド移動）
+        // 5基の小型ブラックホール
         this.blackHoles = [];
         for (let i = 0; i < 5; i++) {
           const colX = (this.bounds.w / 6) * (i + 1);
@@ -1191,6 +1250,7 @@
 
         this.balls = [];
         this.firstLandedX = null;
+        this.playerWall = null;
 
         const b = new Ball(this.launchX, this.launchY - BALL_RADIUS - 1);
         const vx = Math.cos(this.aimAngle);
@@ -1232,9 +1292,16 @@
       }
 
       physicsStep() {
-        const effectiveSpeed = this.isFastForward ? 8 : this.speedMultiplier;
+        const effectiveSpeed = this.speedMultiplier;
         const subSteps = 4;
         const totalLoops = effectiveSpeed;
+
+        // プレイヤー設置バリアの更新
+        if (this.playerWall) {
+          if (!this.playerWall.update()) {
+            this.playerWall = null; // 寿命を迎えたら自然消滅
+          }
+        }
 
         // 小型ブラックホールの自律遊弋
         for (const bh of this.blackHoles) {
@@ -1290,8 +1357,8 @@
                 continue;
               }
 
-              // 衝突判定
-              this.handleReflectorCollisions(ball);
+              // 反射・衝突処理
+              this.handleLineSegmentCollision(ball);
               this.handleMovingBouncerCollisions(ball);
               this.handleBlackHoleGravitation(ball);
               this.handleBrickCollisions(ball);
@@ -1307,45 +1374,75 @@
         }
       }
 
-      handleReflectorCollisions(ball) {
-        for (const ref of this.staticReflectors) {
-          const x1 = ref.x1, y1 = ref.y1, x2 = ref.x2, y2 = ref.y2;
+      // 厳密な線分反射物理演算（固定壁＋プレイヤーバリアの両対応）
+      handleLineSegmentCollision(ball) {
+        const testSegment = (x1, y1, x2, y2, isPlayerBar = false) => {
           const dx = x2 - x1;
           const dy = y2 - y1;
           const lenSq = dx * dx + dy * dy;
-          if (lenSq === 0) continue;
+          if (lenSq === 0) return false;
 
           let t = ((ball.x - x1) * dx + (ball.y - y1) * dy) / lenSq;
           t = Math.max(0, Math.min(1, t));
           const cx = x1 + t * dx;
           const cy = y1 + t * dy;
 
-          const dist = Math.hypot(ball.x - cx, ball.y - cy);
-          if (dist < ball.radius + 3) {
-            sound.playBarrierReflect();
+          const distX = ball.x - cx;
+          const distY = ball.y - cy;
+          const dist = Math.hypot(distX, distY);
+          const collisionDist = ball.radius + (isPlayerBar ? 4.5 : 3.5);
+
+          if (dist < collisionDist) {
+            // 法線ベクトル
             let nx = -dy;
             let ny = dx;
             const nLen = Math.hypot(nx, ny);
+            if (nLen === 0) return false;
             nx /= nLen;
             ny /= nLen;
 
-            const dot = ball.vx * nx + ball.vy * ny;
-            if (dot < 0) {
-              ball.vx = ball.vx - 2 * dot * nx;
-              ball.vy = ball.vy - 2 * dot * ny;
-              ball.x = cx + nx * (ball.radius + 4);
-              ball.y = cy + ny * (ball.radius + 4);
-            } else {
-              ball.vx = ball.vx + 2 * dot * nx;
-              ball.vy = ball.vy + 2 * dot * ny;
-              ball.x = cx - nx * (ball.radius + 4);
-              ball.y = cy - ny * (ball.radius + 4);
+            // ボールの進行方向と法線ベクトルの向きを合わせる（内積 < 0 なら正しい向き）
+            let dot = ball.vx * nx + ball.vy * ny;
+            if (dot > 0) {
+              nx = -nx;
+              ny = -ny;
+              dot = -dot;
             }
 
-            for (let p = 0; p < 5; p++) {
-              this.particles.push(new Particle(cx, cy, '#38bdf8', 4, 2, 0.6));
+            // 速度ベクトルの鏡面反射
+            ball.vx = ball.vx - 2 * dot * nx;
+            ball.vy = ball.vy - 2 * dot * ny;
+
+            // プレイヤーバリアの場合は上空へアシスト加速！
+            if (isPlayerBar) {
+              ball.vy = -Math.abs(ball.vy) * 1.05; // 確実に上向きに跳ね返す
+              sound.playBarrierReflect();
+              this.playerWall.hitFlash = 1.0;
+            } else {
+              sound.playBarrierReflect();
             }
+
+            // めり込み完全解消（法線方向に外側へ押し出す）
+            ball.x = cx + nx * (collisionDist + 2);
+            ball.y = cy + ny * (collisionDist + 2);
+
+            for (let p = 0; p < 6; p++) {
+              this.particles.push(new Particle(cx, cy, isPlayerBar ? '#38bdf8' : '#22d3ee', 4, 2, 0.6));
+            }
+            return true;
           }
+          return false;
+        };
+
+        // 1. 固定反射壁
+        for (const ref of this.staticReflectors) {
+          testSegment(ref.x1, ref.y1, ref.x2, ref.y2, false);
+        }
+
+        // 2. プレイヤー設置バリア
+        if (this.playerWall) {
+          const halfW = this.playerWall.width / 2;
+          testSegment(this.playerWall.x - halfW, this.playerWall.y, this.playerWall.x + halfW, this.playerWall.y, true);
         }
       }
 
@@ -1359,7 +1456,7 @@
           if (dist < hitDist) {
             sound.playBumper();
             core.hitFlash = 1.0;
-            ball.isCharged = true; // チャージ球化（次のブロックに特大ダメージ）
+            ball.isCharged = true;
 
             const nx = dx / (dist || 1);
             const ny = dy / (dist || 1);
@@ -1391,7 +1488,6 @@
           const dy = bh.y - ball.y;
           const dist = Math.hypot(dx, dy);
 
-          // 重力ベント
           const gravityR = bh.radius * 3.5;
           if (dist < gravityR && dist > bh.radius * 0.4) {
             const pull = 0.55 * (1 - dist / gravityR);
@@ -1399,7 +1495,6 @@
             ball.vy += (dy / dist) * pull;
           }
 
-          // 中心吸入 → ワームホール転送
           if (dist < bh.radius * 0.7) {
             sound.playWarp();
             this.warpCount++;
@@ -1419,7 +1514,6 @@
               this.particles.push(new Particle(dest.x, dest.y, '#c084fc', 5, 2.5, 0.8));
             }
 
-            // 50%の確率でクローン球を分裂射出
             if (Math.random() < 0.50) {
               this.spawnWarpClone(dest.x, dest.y, ball.vx, ball.vy);
             }
@@ -1458,7 +1552,6 @@
               this.baseScore += 25 * damage;
               sound.playPop(1.0 + (this.stage % 5) * 0.1);
 
-              // ✦ MULTI（100%確定分裂）
               if (brick.type === BrickType.MULTI) {
                 if (this.balls.length < MAX_BALLS_ON_SCREEN) {
                   const bExtra = new Ball(ball.x, ball.y);
@@ -1494,7 +1587,6 @@
 
               this.updateHUD();
 
-              // 反射処理
               const overlapX = ball.radius - Math.abs(distX);
               const overlapY = ball.radius - Math.abs(distY);
 
@@ -1518,6 +1610,7 @@
         this.launchX = this.firstLandedX !== null ? Math.max(16, Math.min(this.bounds.w - 16, this.firstLandedX)) : this.bounds.w / 2;
         this.firstLandedX = null;
         this.balls = [];
+        this.playerWall = null;
 
         let remainingBlocks = 0;
         for (let r = 0; r < GRID_ROWS; r++) {
@@ -1639,17 +1732,22 @@
           }
         }
 
-        // 前半面の固定反射板
+        // 固定反射板（前半面）
         for (const ref of this.staticReflectors) {
           ref.draw(this.ctx);
         }
 
-        // 後半面の移動反射コア
+        // 移動反射コア（後半面）
         for (const bouncer of this.movingBouncers) {
           bouncer.draw(this.ctx);
         }
 
-        // 小型ブラックホール（5基）
+        // プレイヤー設置バリア
+        if (this.playerWall) {
+          this.playerWall.draw(this.ctx);
+        }
+
+        // 小型ブラックホール
         for (const bh of this.blackHoles) {
           bh.draw(this.ctx);
         }
@@ -1657,7 +1755,7 @@
         // 照準ガイド線
         this.drawAimLine();
 
-        // 飛行中ボール
+        // ボール
         for (const ball of this.balls) {
           ball.draw(this.ctx);
         }
