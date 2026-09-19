@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>Neon Bounce Breaker - High-Score Master Edition</title>
+  <title>Neon Bounce Breaker - Quantum Odyssey</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -14,11 +14,6 @@
       user-select: none;
       -webkit-user-select: none;
       -webkit-touch-callout: none;
-      box-sizing: border-box;
-    }
-    :root {
-      --sat: env(safe-area-inset-top, 0px);
-      --sab: env(safe-area-inset-bottom, 0px);
     }
     body {
       font-family: 'Rajdhani', sans-serif;
@@ -26,202 +21,210 @@
       color: #f8fafc;
       overflow: hidden;
       overscroll-behavior: none;
-      padding-top: max(6px, var(--sat));
-      padding-bottom: max(6px, var(--sab));
     }
     .font-orbitron {
       font-family: 'Orbitron', monospace;
     }
     .glow-cyan {
-      box-shadow: 0 0 16px rgba(6, 182, 212, 0.45);
+      box-shadow: 0 0 15px rgba(6, 182, 212, 0.5);
     }
-    .glow-emerald {
-      box-shadow: 0 0 16px rgba(16, 185, 129, 0.45);
+    .glow-purple {
+      box-shadow: 0 0 15px rgba(168, 85, 247, 0.5);
     }
     .neon-text-cyan {
-      text-shadow: 0 0 8px rgba(6, 182, 212, 0.8), 0 0 18px rgba(6, 182, 212, 0.4);
-    }
-    .neon-text-magenta {
-      text-shadow: 0 0 8px rgba(236, 72, 153, 0.8), 0 0 18px rgba(236, 72, 153, 0.4);
+      text-shadow: 0 0 8px rgba(6, 182, 212, 0.8), 0 0 16px rgba(6, 182, 212, 0.4);
     }
     .neon-text-yellow {
-      text-shadow: 0 0 8px rgba(250, 204, 21, 0.8), 0 0 18px rgba(250, 204, 21, 0.4);
-    }
-    .neon-text-green {
-      text-shadow: 0 0 8px rgba(74, 222, 128, 0.8), 0 0 18px rgba(74, 222, 128, 0.4);
+      text-shadow: 0 0 8px rgba(250, 204, 21, 0.8), 0 0 16px rgba(250, 204, 21, 0.4);
     }
     .neon-text-purple {
-      text-shadow: 0 0 8px rgba(192, 132, 252, 0.8), 0 0 18px rgba(168, 85, 247, 0.4);
+      text-shadow: 0 0 8px rgba(192, 132, 252, 0.9), 0 0 18px rgba(168, 85, 247, 0.5);
     }
     canvas {
       display: block;
       touch-action: none;
     }
+    @keyframes pulse-banner {
+      0%, 100% { opacity: 0.3; }
+      50% { opacity: 1; }
+    }
+    .banner-pulse {
+      animation: pulse-banner 1.2s infinite ease-in-out;
+    }
   </style>
 </head>
-<body class="h-[100dvh] w-screen flex flex-col items-center justify-between px-2 select-none">
-  <!-- Top Header with Detailed Stats & All-time Best -->
+<body class="h-screen w-screen flex flex-col items-center justify-between bg-slate-950 px-2 py-1.5 select-none" style="padding-top: max(0.375rem, env(safe-area-inset-top)); padding-bottom: max(0.375rem, env(safe-area-inset-bottom));">
+
+  <!-- Header HUD -->
   <header class="w-full max-w-md flex flex-col gap-1 z-10 shrink-0">
-    <div class="flex items-center justify-between bg-slate-900/90 border border-slate-800/90 px-2 py-1.5 rounded-xl backdrop-blur shadow-md">
-      <div class="flex flex-col">
-        <span class="text-[8px] text-slate-400 font-orbitron tracking-wider">STAGE</span>
-        <span id="stageText" class="text-base font-black font-orbitron text-cyan-400 neon-text-cyan leading-none">1/10</span>
+    <div class="flex items-center justify-between bg-slate-900/90 border border-slate-800/90 px-2.5 py-1.5 rounded-xl backdrop-blur">
+      <div class="flex flex-col items-start min-w-[52px]">
+        <span class="text-[9px] text-slate-400 font-orbitron tracking-wider">STAGE</span>
+        <span id="stageText" class="text-base font-bold font-orbitron text-cyan-400 neon-text-cyan leading-tight">1/10</span>
       </div>
 
-      <div class="flex flex-col items-center">
-        <span class="text-[8px] text-purple-300 font-orbitron tracking-wider flex items-center gap-0.5"><span>🌀</span>WARP</span>
-        <span id="warpsText" class="text-base font-black font-orbitron text-purple-300 neon-text-purple leading-none">0</span>
+      <div class="flex flex-col items-center min-w-[48px]">
+        <span class="text-[9px] text-purple-400 font-orbitron tracking-wider">🌀 WARPS</span>
+        <span id="warpText" class="text-base font-black font-orbitron text-purple-300 neon-text-purple leading-tight">0</span>
       </div>
 
-      <div class="flex flex-col items-center">
-        <span class="text-[8px] text-slate-400 font-orbitron tracking-wider">SHOTS</span>
-        <span id="shotsText" class="text-base font-black font-orbitron text-emerald-400 neon-text-green leading-none">6</span>
+      <div class="flex flex-col items-center min-w-[48px]">
+        <span class="text-[9px] text-slate-400 font-orbitron tracking-wider">SHOTS</span>
+        <span id="shotsText" class="text-base font-bold font-orbitron text-amber-300 neon-text-yellow leading-tight">6</span>
       </div>
 
-      <div class="flex flex-col items-center">
-        <span class="text-[8px] text-slate-400 font-orbitron tracking-wider">SCORE</span>
-        <span id="scoreText" class="text-base font-black font-orbitron text-amber-300 neon-text-yellow leading-none">0</span>
+      <div class="flex flex-col items-center min-w-[50px]">
+        <span class="text-[9px] text-slate-400 font-orbitron tracking-wider">BLOCKS</span>
+        <span id="blocksText" class="text-base font-bold font-orbitron text-emerald-400 leading-tight">0</span>
       </div>
 
-      <div class="flex flex-col items-end">
-        <span class="text-[8px] text-pink-400 font-orbitron tracking-wider">BEST</span>
-        <span id="bestScoreText" class="text-base font-black font-orbitron text-pink-400 leading-none">0</span>
+      <div class="flex flex-col items-end min-w-[62px]">
+        <span class="text-[9px] text-slate-400 font-orbitron tracking-wider">RATING</span>
+        <span id="scoreText" class="text-base font-bold font-orbitron text-pink-400 leading-tight">0</span>
       </div>
 
       <div class="flex items-center gap-1 ml-1 border-l border-slate-800 pl-1.5">
-        <button id="muteBtn" class="w-6 h-6 flex items-center justify-center rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs border border-slate-700 active:scale-95 transition-transform" title="ミュート">🔊</button>
-        <button id="speedBtn" class="px-1.5 h-6 rounded-lg bg-cyan-950/90 hover:bg-cyan-900 border border-cyan-500/50 text-cyan-300 text-[11px] font-orbitron font-bold active:scale-95 transition-transform">1x</button>
+        <button id="muteBtn" class="p-1 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-200 text-xs border border-slate-700 active:scale-95 transition-transform" title="ミュート">🔊</button>
+        <button id="speedBtn" class="px-1.5 py-1 rounded-lg bg-cyan-950/80 hover:bg-cyan-900 border border-cyan-500/50 text-cyan-300 text-[10px] font-orbitron font-bold active:scale-95 transition-transform">1x</button>
       </div>
     </div>
   </header>
 
   <!-- Main Game Canvas Container -->
-  <main class="relative w-full max-w-md flex-1 my-1 rounded-2xl overflow-hidden border border-slate-800/80 bg-slate-950 shadow-2xl flex flex-col justify-center">
+  <main class="relative w-full max-w-md flex-1 my-1 rounded-2xl overflow-hidden border border-slate-800/80 bg-slate-900/40 shadow-2xl flex flex-col justify-center">
     <canvas id="gameCanvas" class="w-full h-full"></canvas>
 
-    <!-- Fast-Forward Status Overlay -->
-    <div id="fastForwardBadge" class="hidden pointer-events-none absolute top-3 right-3 px-2.5 py-1 bg-amber-500/30 border border-amber-400/80 text-amber-300 font-orbitron text-[11px] font-black rounded backdrop-blur animate-pulse z-20">
-      ⚡ HYPER SPEED
+    <!-- Fast-forward Badge -->
+    <div id="fastForwardBadge" class="hidden pointer-events-none absolute top-3 right-3 px-2 py-0.5 bg-amber-500/30 border border-amber-400/70 text-amber-300 font-orbitron text-[11px] font-black rounded-lg backdrop-blur shadow-lg banner-pulse">
+      ⚡ 8x HYPER SPEED
     </div>
 
-    <!-- Stage Complete Modal with Comprehensive Scoring Breakdown -->
-    <div id="stageCompleteModal" class="hidden absolute inset-0 bg-black/90 backdrop-blur-md flex flex-col items-center justify-center p-5 z-30 overflow-y-auto">
+    <!-- Stage Complete Modal -->
+    <div id="stageCompleteModal" class="hidden absolute inset-0 bg-black/85 backdrop-blur-md flex flex-col items-center justify-center p-6 z-30">
       <div class="text-4xl mb-1">🎉</div>
-      <h2 id="stageCompleteTitle" class="text-2xl font-black font-orbitron text-cyan-400 neon-text-cyan mb-1">STAGE COMPLETE!</h2>
-      <p id="stageCompleteSubtitle" class="text-[11px] text-slate-300 mb-4 font-mono text-center">全てのブロックの破壊に成功しました！</p>
+      <h2 class="text-2xl font-black font-orbitron text-cyan-400 neon-text-cyan mb-1">STAGE COMPLETE!</h2>
+      <p class="text-xs text-slate-400 mb-4 font-mono">全ターゲットブロックを殲滅しました</p>
       
-      <div class="bg-slate-900/95 border border-slate-800 rounded-2xl p-3.5 w-full max-w-xs mb-4 text-center space-y-2">
-        <div class="flex justify-between items-center text-xs font-orbitron">
-          <span class="text-slate-400">STAGE</span>
-          <span id="clearedStageNum" class="text-cyan-400 font-bold text-sm">1 / 10</span>
+      <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 w-full max-w-xs mb-5 text-center space-y-2 text-xs font-orbitron">
+        <div class="flex justify-between items-center text-slate-300">
+          <span class="text-slate-400">STAGE CLEAR</span>
+          <span id="completedStageText" class="text-cyan-400 font-bold text-sm">STAGE 1</span>
         </div>
-        <div class="flex justify-between items-center text-xs font-orbitron">
-          <span class="text-slate-400">BASE SCORE</span>
-          <span id="clearedBaseScore" class="text-amber-400 font-bold text-sm">0</span>
+        <div class="flex justify-between items-center text-slate-300">
+          <span class="text-purple-400">WARP COUNT</span>
+          <span id="stageWarpText" class="text-purple-300 font-bold text-sm">0</span>
         </div>
-        <div class="flex justify-between items-center text-xs font-orbitron">
-          <span class="text-purple-400">WARP BONUS (x150)</span>
-          <span id="clearedWarpBonus" class="text-purple-300 font-bold text-sm">+0</span>
+        <div class="flex justify-between items-center text-slate-300">
+          <span class="text-amber-400">SHOTS REMAINING</span>
+          <span id="stageShotsLeftText" class="text-amber-300 font-bold text-sm">+0</span>
         </div>
-        <div class="flex justify-between items-center text-xs font-orbitron">
-          <span class="text-emerald-400">SHOT SAVED (x500)</span>
-          <span id="clearedShotBonus" class="text-emerald-400 font-bold text-sm">+0</span>
+        <div class="flex justify-between items-center text-slate-300">
+          <span class="text-pink-400">CONTINUES USED</span>
+          <span id="stageContinuesText" class="font-bold text-sm text-slate-300">0</span>
         </div>
-        <div class="flex justify-between items-center text-xs font-orbitron">
-          <span class="text-rose-400">CONT. PENALTY (-2500)</span>
-          <span id="clearedContPenalty" class="text-rose-400 font-bold text-sm">-0</span>
-        </div>
-        <div class="border-t border-slate-800 pt-2 flex justify-between items-center">
-          <span class="text-xs font-orbitron text-slate-300">TOTAL RATING</span>
-          <div class="flex items-center gap-1.5">
-            <span id="clearedRankTag" class="px-1.5 py-0.5 rounded bg-cyan-950 border border-cyan-400 text-cyan-300 font-orbitron font-black text-xs">S</span>
-            <span id="clearedTotalScore" class="text-lg font-black font-orbitron text-amber-300 neon-text-yellow">0</span>
-          </div>
-        </div>
-        <div class="text-[10px] text-slate-400 font-mono text-left pt-1">
-          <span>ALL-TIME BEST: </span>
-          <span id="clearedAllTimeBest" class="text-pink-400 font-bold font-orbitron">0</span>
+        <div class="pt-2 border-t border-slate-800 flex justify-between items-center">
+          <span class="text-slate-300">ESTIMATED RATING</span>
+          <span id="stageRatingText" class="text-pink-400 font-black text-base">0</span>
         </div>
       </div>
-      
-      <button id="nextStageBtn" class="w-full max-w-xs py-3 px-6 rounded-xl bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 text-slate-950 font-orbitron font-black tracking-wider text-sm shadow-lg glow-cyan active:scale-95 transition-all">
+
+      <button id="nextStageBtn" class="w-full max-w-xs py-3 px-6 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-orbitron font-black tracking-wider text-sm shadow-lg glow-cyan active:scale-95 transition-all">
         NEXT STAGE ▶
       </button>
     </div>
 
-    <!-- Game Over Modal with Detailed Formula Score & CONTINUE (-10 WARPS) -->
-    <div id="gameOverModal" class="hidden absolute inset-0 bg-black/90 backdrop-blur-md flex flex-col items-center justify-center p-5 z-30 overflow-y-auto">
-      <div class="text-4xl mb-1">💥</div>
-      <h2 class="text-2xl font-black font-orbitron text-pink-500 neon-text-magenta mb-1">OUT OF SHOTS</h2>
-      <p class="text-[11px] text-slate-400 mb-3 font-mono text-center">残弾が尽きました。ワープ10回分を消費して復活可能！</p>
+    <!-- All Stages Cleared Modal -->
+    <div id="allClearModal" class="hidden absolute inset-0 bg-black/90 backdrop-blur-md flex flex-col items-center justify-center p-6 z-30">
+      <div class="text-5xl mb-2">👑</div>
+      <h2 class="text-2xl font-black font-orbitron text-amber-400 neon-text-yellow mb-1 text-center">ALL STAGES CLEARED!</h2>
+      <p class="text-xs text-slate-400 mb-4 font-mono text-center">全10ステージを完全制覇しました！</p>
       
-      <div class="bg-slate-900/95 border border-slate-800 rounded-2xl p-3 w-full max-w-xs mb-3 text-center space-y-1.5">
-        <div class="flex justify-between items-center text-xs font-orbitron">
-          <span class="text-slate-400">FINAL STAGE</span>
+      <div id="allClearBonusBadge" class="mb-3 px-3 py-1 bg-amber-500/20 border border-amber-400 text-amber-300 font-orbitron text-xs font-bold rounded-lg hidden">
+        👑 PERFECT NO-CONTINUE RUN!
+      </div>
+
+      <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 w-full max-w-xs mb-5 text-center space-y-2 text-xs font-orbitron">
+        <div class="flex justify-between items-center">
+          <span class="text-slate-400">FINAL RANK</span>
+          <span id="finalRankText" class="text-2xl font-black text-amber-300">S+</span>
+        </div>
+        <div class="flex justify-between items-center text-slate-300">
+          <span class="text-slate-400">TOTAL RATING</span>
+          <span id="allClearRating" class="text-pink-400 font-black text-base">0</span>
+        </div>
+        <div class="flex justify-between items-center text-slate-300">
+          <span class="text-purple-400">TOTAL WARPS</span>
+          <span id="allClearWarps" class="text-purple-300 font-bold">0</span>
+        </div>
+        <div class="flex justify-between items-center text-slate-300">
+          <span class="text-amber-400">CONTINUES USED</span>
+          <span id="allClearContinues" class="text-amber-300 font-bold">0</span>
+        </div>
+        <div class="flex justify-between items-center text-slate-300">
+          <span class="text-cyan-400">ALL-TIME BEST</span>
+          <span id="allClearBest" class="text-cyan-300 font-bold">0</span>
+        </div>
+      </div>
+
+      <button id="allClearRestartBtn" class="w-full max-w-xs py-3 px-6 rounded-xl bg-gradient-to-r from-amber-400 to-pink-500 hover:from-amber-300 hover:to-pink-400 text-slate-950 font-orbitron font-black tracking-wider text-sm shadow-lg active:scale-95 transition-all">
+        PLAY AGAIN (STAGE 1)
+      </button>
+    </div>
+
+    <!-- Game Over Modal -->
+    <div id="gameOverModal" class="hidden absolute inset-0 bg-black/90 backdrop-blur-md flex flex-col items-center justify-center p-6 z-30">
+      <div class="text-4xl mb-1">💀</div>
+      <h2 class="text-2xl font-black font-orbitron text-pink-500 mb-1">OUT OF SHOTS</h2>
+      <p class="text-xs text-slate-400 mb-4 font-mono">弾薬が切れました</p>
+      
+      <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 w-full max-w-xs mb-4 text-center space-y-2 text-xs font-orbitron">
+        <div class="flex justify-between items-center">
+          <span class="text-slate-400">CURRENT STAGE</span>
           <span id="finalStage" class="text-cyan-400 font-bold text-sm">STAGE 1</span>
         </div>
-        <div class="flex justify-between items-center text-xs font-orbitron">
-          <span class="text-slate-400">BLOCKS REMAIN</span>
-          <span id="finalRemainingBlocks" class="text-pink-400 font-bold text-sm">5</span>
+        <div class="flex justify-between items-center">
+          <span class="text-purple-400">WARPS</span>
+          <span id="finalWarps" class="text-purple-300 font-bold">0</span>
         </div>
-        <div class="flex justify-between items-center text-xs font-orbitron">
-          <span class="text-purple-400">WARPS (x150)</span>
-          <span id="finalWarps" class="text-purple-300 font-bold text-sm">0 (+0)</span>
+        <div class="flex justify-between items-center">
+          <span class="text-slate-400">TOTAL RATING</span>
+          <span id="finalScore" class="text-pink-400 font-black text-sm">0</span>
         </div>
-        <div class="flex justify-between items-center text-xs font-orbitron">
-          <span class="text-rose-400">CONT. USED (-2500)</span>
-          <span id="finalContinuesCount" class="text-rose-400 font-bold text-sm">0 (-0)</span>
-        </div>
-        <div class="border-t border-slate-800 pt-1.5 flex justify-between items-center">
-          <span class="text-xs font-orbitron text-slate-300">CALCULATED SCORE</span>
-          <div class="flex items-center gap-1.5">
-            <span id="finalRankTag" class="px-1.5 py-0.5 rounded bg-pink-950 border border-pink-400 text-pink-300 font-orbitron font-black text-xs">B</span>
-            <span id="finalScore" class="text-base font-black font-orbitron text-amber-300 neon-text-yellow">0</span>
-          </div>
-        </div>
-        <div class="text-[10px] text-slate-400 font-mono text-left">
-          <span>ALL-TIME BEST: </span>
-          <span id="finalAllTimeBest" class="text-pink-400 font-bold font-orbitron">0</span>
+        <div class="flex justify-between items-center">
+          <span class="text-amber-400">CONTINUES</span>
+          <span id="finalContinues" class="text-amber-300 font-bold">0</span>
         </div>
       </div>
-      
-      <div class="w-full max-w-xs flex flex-col gap-2">
-        <button id="continueBtn" class="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-emerald-400 to-cyan-500 hover:from-emerald-300 hover:to-cyan-400 text-slate-950 font-orbitron font-black tracking-wide text-xs shadow-lg glow-emerald active:scale-95 transition-all flex flex-col items-center justify-center leading-tight">
-          <span>⚡ CONTINUE (+3 SHOTS)</span>
-          <span class="text-[10px] font-mono text-slate-900 font-normal">COST: 🌀 10 WARPS CONSUMED</span>
-        </button>
-        <button id="retryBtn" class="w-full py-2 px-4 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-slate-300 font-orbitron font-bold text-xs border border-slate-700 active:scale-95 transition-all">
-          RESTART FROM STAGE 1 🔄
-        </button>
-      </div>
+
+      <!-- Continue button (Consumes 10 Warps) -->
+      <button id="continueBtn" class="w-full max-w-xs py-3 px-4 mb-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-orbitron font-black text-xs tracking-wider shadow-lg flex items-center justify-center gap-1.5 active:scale-95 transition-all">
+        <span>⚡ CONTINUE (+3 SHOTS / -10 WARPS)</span>
+      </button>
+
+      <button id="retryBtn" class="w-full max-w-xs py-2 px-4 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-slate-300 font-orbitron font-bold text-xs tracking-wider border border-slate-700 active:scale-95 transition-all">
+        RESTART FROM STAGE 1
+      </button>
     </div>
   </main>
 
-  <!-- Formula info bar and Continue stats -->
-  <div class="w-full max-w-md flex items-center justify-between py-1 px-2 text-[10px] text-slate-400 font-mono bg-slate-900/60 rounded-lg border border-slate-800/60">
-    <div class="flex items-center gap-2">
-      <span class="text-cyan-300 font-bold">✦×2: 分裂100%</span>
-      <span class="text-fuchsia-400 font-bold">🌀: 50%分裂</span>
-      <span class="text-amber-300">⚡: +1弾</span>
-      <span class="text-rose-400">🛡️: 反射壁(後編)</span>
-    </div>
-    <div class="flex items-center gap-1.5">
-      <span class="text-slate-500">CONT:</span>
-      <span id="hudContinueCount" class="text-cyan-400 font-orbitron font-bold">0</span>
-    </div>
+  <!-- Bottom Helper info -->
+  <div class="w-full max-w-md text-center py-0.5 text-[10px] text-slate-400/80 font-mono tracking-wide">
+    引っ張り照準 / 画面長押し: 8倍速 / ⚡コア衝突: チャージ球化
   </div>
 
+  <!-- Footer Info Bar -->
   <footer class="w-full max-w-md flex items-center justify-between gap-2 px-1 py-1 z-10 shrink-0">
-    <div class="flex items-center gap-2 bg-slate-900/90 border border-slate-800/90 px-3 py-1.5 rounded-xl">
-      <span class="text-sm">⚾</span>
-      <span class="text-[11px] text-slate-400 font-orbitron">BALLS:</span>
-      <span id="ballsCountText" class="text-xs font-bold font-orbitron text-cyan-300">1</span>
+    <div class="flex items-center gap-2 bg-slate-900/80 border border-slate-800/90 px-2.5 py-1 rounded-xl text-xs font-orbitron">
+      <span class="text-slate-400">BEST:</span>
+      <span id="bestRatingText" class="text-pink-400 font-bold">0</span>
+      <span class="text-slate-600 mx-0.5">|</span>
+      <span class="text-slate-400">CONT:</span>
+      <span id="continuesCountText" class="text-amber-400 font-bold">0</span>
     </div>
-
+    
     <div class="flex items-center gap-2">
-      <span class="text-[10px] text-slate-400 font-mono hidden sm:inline">長押し: 超早送り⚡</span>
-      <button id="resetGameBtn" class="p-1.5 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-slate-400 hover:text-slate-200 border border-slate-700 text-xs active:scale-95 transition-transform" title="リセット">
-        🔄
+      <button id="resetGameBtn" class="px-2.5 py-1 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-300 border border-slate-700 text-xs font-orbitron active:scale-95 transition-transform" title="最初からリセット">
+        🔄 RESET
       </button>
     </div>
   </footer>
@@ -243,16 +246,16 @@
           this.ctx.resume();
         }
       }
-      playPop(pitchMod = 1.0) {
+      playPop(pitch = 1.0) {
         if (!this.enabled) return;
         this.init();
         if (!this.ctx) return;
         const osc = this.ctx.createOscillator();
         const gain = this.ctx.createGain();
         osc.type = 'sine';
-        const freq = 480 * pitchMod;
-        osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(freq * 1.5, this.ctx.currentTime + 0.04);
+        const f = 460 * pitch;
+        osc.frequency.setValueAtTime(f, this.ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(f * 1.6, this.ctx.currentTime + 0.04);
         gain.gain.setValueAtTime(0.08, this.ctx.currentTime);
         gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.04);
         osc.connect(gain);
@@ -260,54 +263,21 @@
         osc.start();
         osc.stop(this.ctx.currentTime + 0.04);
       }
-      playSplit() {
+      playBumper() {
         if (!this.enabled) return;
         this.init();
         if (!this.ctx) return;
         const osc = this.ctx.createOscillator();
         const gain = this.ctx.createGain();
         osc.type = 'triangle';
-        osc.frequency.setValueAtTime(620, this.ctx.currentTime);
-        osc.frequency.linearRampToValueAtTime(1280, this.ctx.currentTime + 0.09);
-        gain.gain.setValueAtTime(0.14, this.ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.09);
+        osc.frequency.setValueAtTime(880, this.ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(1200, this.ctx.currentTime + 0.08);
+        gain.gain.setValueAtTime(0.16, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.08);
         osc.connect(gain);
         gain.connect(this.ctx.destination);
         osc.start();
-        osc.stop(this.ctx.currentTime + 0.09);
-      }
-      playEnergy() {
-        if (!this.enabled) return;
-        this.init();
-        if (!this.ctx) return;
-        const osc = this.ctx.createOscillator();
-        const gain = this.ctx.createGain();
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(440, this.ctx.currentTime);
-        osc.frequency.linearRampToValueAtTime(880, this.ctx.currentTime + 0.12);
-        osc.frequency.linearRampToValueAtTime(1320, this.ctx.currentTime + 0.22);
-        gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.22);
-        osc.connect(gain);
-        gain.connect(this.ctx.destination);
-        osc.start();
-        osc.stop(this.ctx.currentTime + 0.22);
-      }
-      playWormhole() {
-        if (!this.enabled) return;
-        this.init();
-        if (!this.ctx) return;
-        const osc = this.ctx.createOscillator();
-        const gain = this.ctx.createGain();
-        osc.type = 'sawtooth';
-        osc.frequency.setValueAtTime(200, this.ctx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(950, this.ctx.currentTime + 0.18);
-        gain.gain.setValueAtTime(0.22, this.ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.18);
-        osc.connect(gain);
-        gain.connect(this.ctx.destination);
-        osc.start();
-        osc.stop(this.ctx.currentTime + 0.18);
+        osc.stop(this.ctx.currentTime + 0.08);
       }
       playBarrierReflect() {
         if (!this.enabled) return;
@@ -315,15 +285,47 @@
         if (!this.ctx) return;
         const osc = this.ctx.createOscillator();
         const gain = this.ctx.createGain();
-        osc.type = 'square';
-        osc.frequency.setValueAtTime(750, this.ctx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(1600, this.ctx.currentTime + 0.07);
-        gain.gain.setValueAtTime(0.18, this.ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.07);
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(950, this.ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(1400, this.ctx.currentTime + 0.06);
+        gain.gain.setValueAtTime(0.12, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.06);
         osc.connect(gain);
         gain.connect(this.ctx.destination);
         osc.start();
-        osc.stop(this.ctx.currentTime + 0.07);
+        osc.stop(this.ctx.currentTime + 0.06);
+      }
+      playWarp() {
+        if (!this.enabled) return;
+        this.init();
+        if (!this.ctx) return;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(320, this.ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(840, this.ctx.currentTime + 0.12);
+        gain.gain.setValueAtTime(0.14, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.12);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start();
+        osc.stop(this.ctx.currentTime + 0.12);
+      }
+      playPowerup() {
+        if (!this.enabled) return;
+        this.init();
+        if (!this.ctx) return;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(540, this.ctx.currentTime);
+        osc.frequency.linearRampToValueAtTime(1080, this.ctx.currentTime + 0.14);
+        gain.gain.setValueAtTime(0.15, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.14);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start();
+        osc.stop(this.ctx.currentTime + 0.14);
       }
       playExplosion() {
         if (!this.enabled) return;
@@ -332,48 +334,48 @@
         const osc = this.ctx.createOscillator();
         const gain = this.ctx.createGain();
         osc.type = 'square';
-        osc.frequency.setValueAtTime(160, this.ctx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(25, this.ctx.currentTime + 0.24);
-        gain.gain.setValueAtTime(0.25, this.ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.24);
+        osc.frequency.setValueAtTime(180, this.ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(30, this.ctx.currentTime + 0.25);
+        gain.gain.setValueAtTime(0.24, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.25);
         osc.connect(gain);
         gain.connect(this.ctx.destination);
         osc.start();
-        osc.stop(this.ctx.currentTime + 0.24);
+        osc.stop(this.ctx.currentTime + 0.25);
       }
-      playStageClear() {
+      playLaunch() {
         if (!this.enabled) return;
         this.init();
         if (!this.ctx) return;
-        const notes = [523.25, 659.25, 783.99, 1046.50, 1318.51];
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(320, this.ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(640, this.ctx.currentTime + 0.05);
+        gain.gain.setValueAtTime(0.06, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.05);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start();
+        osc.stop(this.ctx.currentTime + 0.05);
+      }
+      playVictory() {
+        if (!this.enabled) return;
+        this.init();
+        if (!this.ctx) return;
+        const notes = [523.25, 659.25, 783.99, 1046.50];
         notes.forEach((freq, idx) => {
           const osc = this.ctx.createOscillator();
           const gain = this.ctx.createGain();
           osc.type = 'triangle';
           osc.frequency.setValueAtTime(freq, this.ctx.currentTime + idx * 0.08);
           gain.gain.setValueAtTime(0.18, this.ctx.currentTime + idx * 0.08);
-          gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + idx * 0.08 + 0.28);
+          gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + idx * 0.08 + 0.2);
           osc.connect(gain);
           gain.connect(this.ctx.destination);
           osc.start(this.ctx.currentTime + idx * 0.08);
-          osc.stop(this.ctx.currentTime + idx * 0.08 + 0.28);
+          osc.stop(this.ctx.currentTime + idx * 0.08 + 0.2);
         });
-      }
-      playGameOver() {
-        if (!this.enabled) return;
-        this.init();
-        if (!this.ctx) return;
-        const osc = this.ctx.createOscillator();
-        const gain = this.ctx.createGain();
-        osc.type = 'sawtooth';
-        osc.frequency.setValueAtTime(280, this.ctx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(45, this.ctx.currentTime + 0.55);
-        gain.gain.setValueAtTime(0.25, this.ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.55);
-        osc.connect(gain);
-        gain.connect(this.ctx.destination);
-        osc.start();
-        osc.stop(this.ctx.currentTime + 0.55);
       }
     }
 
@@ -381,18 +383,17 @@
 
     const COLS = 7;
     const GRID_ROWS = 8;
-    const TOTAL_STAGES = 10;
-    const BALL_RADIUS = 5.8;
+    const BALL_RADIUS = 6.0;
     const BASE_BALL_SPEED = 14.5;
-    const MAX_ACTIVE_BALLS = 18;
-    const BLACK_HOLE_COUNT = 5;
+    const TOTAL_STAGES = 10;
+    const MAX_BALLS_ON_SCREEN = 20;
 
     const BrickType = {
-      MULTIPLIER: 'multiplier', // 100% split
-      SOFT: 'soft',             // ~18% split
-      HARD: 'hard',             // 0% split
-      ENERGY: 'energy',         // +1 shot
-      BOMB: 'bomb'              // 3x3 explosion
+      SOFT: 'soft',
+      HARD: 'hard',
+      MULTI: 'multi',
+      ENERGY: 'energy',
+      BOMB: 'bomb'
     };
 
     class Particle {
@@ -426,7 +427,7 @@
     }
 
     class FloatText {
-      constructor(x, y, text, color = '#22d3ee', size = 13) {
+      constructor(x, y, text, color = '#22d3ee', size = 14) {
         this.x = x;
         this.y = y;
         this.text = text;
@@ -435,8 +436,8 @@
         this.life = 1.0;
       }
       update() {
-        this.y -= 0.85;
-        this.life -= 0.026;
+        this.y -= 0.8;
+        this.life -= 0.024;
         return this.life > 0;
       }
       draw(ctx) {
@@ -446,190 +447,77 @@
         ctx.font = `900 ${this.size}px 'Orbitron', sans-serif`;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.shadowBlur = 6;
+        ctx.shadowBlur = 8;
         ctx.shadowColor = this.color;
         ctx.fillText(this.text, this.x, this.y);
         ctx.restore();
       }
     }
 
-    class ReflectiveBarrier {
-      constructor(x1, y1, x2, y2, thickness = 7, color = '#f43f5e') {
-        this.x1 = x1;
-        this.y1 = y1;
-        this.x2 = x2;
-        this.y2 = y2;
-        this.thickness = thickness;
-        this.color = color;
-        this.hitGlow = 0;
-        this.pulse = Math.random() * Math.PI;
-
-        const dx = x2 - x1;
-        const dy = y2 - y1;
-        this.length = Math.hypot(dx, dy);
-        this.nx = -dy / (this.length || 1);
-        this.ny = dx / (this.length || 1);
-      }
-
-      draw(ctx) {
-        this.pulse += 0.04;
-        ctx.save();
-        const alpha = 0.75 + Math.sin(this.pulse) * 0.2;
-        ctx.strokeStyle = this.hitGlow > 0 ? '#ffffff' : this.color;
-        ctx.lineWidth = this.thickness + (this.hitGlow > 0 ? 3 : 0);
-        ctx.lineCap = 'round';
-        ctx.shadowBlur = 12 + this.hitGlow * 14;
-        ctx.shadowColor = this.color;
-        ctx.globalAlpha = alpha;
-
-        ctx.beginPath();
-        ctx.moveTo(this.x1, this.y1);
-        ctx.lineTo(this.x2, this.y2);
-        ctx.stroke();
-
-        // Inner glowing core
-        ctx.strokeStyle = '#ffffff';
-        ctx.lineWidth = 2.2;
-        ctx.beginPath();
-        ctx.moveTo(this.x1, this.y1);
-        ctx.lineTo(this.x2, this.y2);
-        ctx.stroke();
-
-        if (this.hitGlow > 0) {
-          this.hitGlow -= 0.08;
-        }
-        ctx.restore();
-      }
-
-      // High-precision segment collision check with reflection restitution
-      checkCollision(ball) {
-        const dx = this.x2 - this.x1;
-        const dy = this.y2 - this.y1;
-        const lenSq = dx * dx + dy * dy;
-        if (lenSq === 0) return false;
-
-        let t = ((ball.x - this.x1) * dx + (ball.y - this.y1) * dy) / lenSq;
-        t = Math.max(0, Math.min(1, t));
-
-        const nearestX = this.x1 + t * dx;
-        const nearestY = this.y1 + t * dy;
-
-        const distVecX = ball.x - nearestX;
-        const distVecY = ball.y - nearestY;
-        const dist = Math.hypot(distVecX, distVecY);
-
-        const hitDist = ball.radius + this.thickness * 0.5 + 1.5;
-        if (dist < hitDist) {
-          this.hitGlow = 1.0;
-          sound.playBarrierReflect();
-
-          const nx = dist > 0.001 ? distVecX / dist : this.nx;
-          const ny = dist > 0.001 ? distVecY / dist : this.ny;
-
-          // Elastic specular reflection: v' = v - 2(v·n)n
-          const dot = ball.vx * nx + ball.vy * ny;
-          if (dot < 0) {
-            const restitution = 1.06;
-            ball.vx = (ball.vx - 2 * dot * nx) * restitution;
-            ball.vy = (ball.vy - 2 * dot * ny) * restitution;
-          }
-
-          // Push ball outside wall boundary
-          ball.x = nearestX + nx * (hitDist + 1.2);
-          ball.y = nearestY + ny * (hitDist + 1.2);
-
-          return { x: nearestX, y: nearestY };
-        }
-        return false;
-      }
-    }
-
+    // 小型ブラックホール（画面全域をバウンド移動）
     class MiniBlackHole {
-      constructor(x, y, radius = 13.5) {
+      constructor(x, y, vx, vy) {
         this.x = x;
         this.y = y;
-        this.radius = radius;
-        const angle = Math.random() * Math.PI * 2;
-        const spd = Math.random() * 0.5 + 0.45;
-        this.vx = Math.cos(angle) * spd;
-        this.vy = Math.sin(angle) * spd;
-        this.rotAngle = 0;
+        this.vx = vx;
+        this.vy = vy;
+        this.radius = 14;
         this.pulse = Math.random() * Math.PI * 2;
-        this.warpRing = 0;
+        this.angle = Math.random() * Math.PI * 2;
       }
-
-      update(bounds, minY, maxY) {
+      update(w, h, topLimit, bottomLimit) {
         this.x += this.vx;
         this.y += this.vy;
         this.pulse += 0.06;
-        this.rotAngle += 0.05;
+        this.angle += 0.04;
 
-        if (this.x - this.radius < 8) {
-          this.x = 8 + this.radius;
+        if (this.x - this.radius < 4) {
+          this.x = 4 + this.radius;
           this.vx = Math.abs(this.vx);
-        } else if (this.x + this.radius > bounds.w - 8) {
-          this.x = bounds.w - 8 - this.radius;
+        } else if (this.x + this.radius > w - 4) {
+          this.x = w - 4 - this.radius;
           this.vx = -Math.abs(this.vx);
         }
 
-        if (this.y - this.radius < minY) {
-          this.y = minY + this.radius;
+        if (this.y - this.radius < topLimit) {
+          this.y = topLimit + this.radius;
           this.vy = Math.abs(this.vy);
-        } else if (this.y + this.radius > maxY) {
-          this.y = maxY - this.radius;
+        } else if (this.y + this.radius > bottomLimit) {
+          this.y = bottomLimit - this.radius;
           this.vy = -Math.abs(this.vy);
         }
-
-        if (this.warpRing > 0) {
-          this.warpRing -= 0.045;
-        }
       }
-
-      triggerWarp() {
-        this.warpRing = 1.0;
-      }
-
       draw(ctx) {
-        const pr = Math.max(1, this.radius * (1 + Math.sin(this.pulse) * 0.12));
+        const pr = this.radius * (1 + Math.sin(this.pulse) * 0.12);
         ctx.save();
+        ctx.shadowBlur = 18;
+        ctx.shadowColor = '#a855f7';
 
-        if (this.warpRing > 0) {
-          ctx.strokeStyle = `rgba(232, 121, 249, ${this.warpRing})`;
-          ctx.lineWidth = 2.5;
-          ctx.beginPath();
-          ctx.arc(this.x, this.y, this.radius * (3.0 - this.warpRing * 1.8), 0, Math.PI * 2);
-          ctx.stroke();
-        }
-
-        ctx.shadowBlur = 14;
-        ctx.shadowColor = '#c084fc';
-
-        const grad = ctx.createRadialGradient(this.x, this.y, 2, this.x, this.y, Math.max(3, pr * 1.8));
-        grad.addColorStop(0, 'rgba(10, 2, 22, 0.92)');
-        grad.addColorStop(0.45, 'rgba(126, 34, 206, 0.45)');
-        grad.addColorStop(0.85, 'rgba(192, 132, 252, 0.2)');
+        const grad = ctx.createRadialGradient(this.x, this.y, 1, this.x, this.y, pr * 1.5);
+        grad.addColorStop(0, 'rgba(2, 6, 23, 0.95)');
+        grad.addColorStop(0.5, 'rgba(168, 85, 247, 0.6)');
         grad.addColorStop(1, 'transparent');
 
         ctx.fillStyle = grad;
         ctx.beginPath();
-        ctx.arc(this.x, this.y, Math.max(1, pr * 1.8), 0, Math.PI * 2);
+        ctx.arc(this.x, this.y, pr * 1.5, 0, Math.PI * 2);
         ctx.fill();
 
-        ctx.fillStyle = '#05000c';
-        ctx.strokeStyle = '#e879f9';
-        ctx.lineWidth = 1.8;
+        ctx.fillStyle = '#020617';
+        ctx.strokeStyle = '#c084fc';
+        ctx.lineWidth = 2.2;
         ctx.beginPath();
-        ctx.arc(this.x, this.y, Math.max(0.5, pr * 0.52), 0, Math.PI * 2);
+        ctx.arc(this.x, this.y, pr * 0.65, 0, Math.PI * 2);
         ctx.fill();
         ctx.stroke();
 
         ctx.save();
         ctx.translate(this.x, this.y);
-        ctx.rotate(this.rotAngle);
-        ctx.strokeStyle = 'rgba(232, 121, 249, 0.9)';
-        ctx.lineWidth = 1.6;
+        ctx.rotate(this.angle);
+        ctx.strokeStyle = 'rgba(232, 121, 249, 0.85)';
+        ctx.lineWidth = 1.8;
         ctx.beginPath();
-        ctx.arc(0, 0, Math.max(0.5, pr * 0.78), 0, Math.PI * 1.2);
+        ctx.arc(0, 0, pr * 0.85, 0, Math.PI * 1.25);
         ctx.stroke();
         ctx.restore();
 
@@ -637,98 +525,174 @@
       }
     }
 
-    class Brick {
-      constructor(col, row, type = BrickType.SOFT, hp = 1) {
-        this.col = col;
-        this.row = row;
-        this.type = type;
-        this.hp = hp;
-        this.maxHp = hp;
+    // 後半面専用：ブラックホールと同等サイズの移動反射コア
+    class MovingBouncerCore {
+      constructor(x, y, vx, vy) {
+        this.x = x;
+        this.y = y;
+        this.vx = vx;
+        this.vy = vy;
+        this.radius = 15;
+        this.pulse = Math.random() * Math.PI * 2;
         this.hitFlash = 0;
       }
+      update(w, h, topLimit, bottomLimit) {
+        this.x += this.vx;
+        this.y += this.vy;
+        this.pulse += 0.07;
+        if (this.hitFlash > 0) this.hitFlash -= 0.08;
 
-      takeDamage(amount = 1) {
+        if (this.x - this.radius < 6) {
+          this.x = 6 + this.radius;
+          this.vx = Math.abs(this.vx);
+        } else if (this.x + this.radius > w - 6) {
+          this.x = w - 6 - this.radius;
+          this.vx = -Math.abs(this.vx);
+        }
+
+        if (this.y - this.radius < topLimit) {
+          this.y = topLimit + this.radius;
+          this.vy = Math.abs(this.vy);
+        } else if (this.y + this.radius > bottomLimit) {
+          this.y = bottomLimit - this.radius;
+          this.vy = -Math.abs(this.vy);
+        }
+      }
+      draw(ctx) {
+        ctx.save();
+        ctx.shadowBlur = this.hitFlash > 0 ? 25 : 14;
+        ctx.shadowColor = this.hitFlash > 0 ? '#ffffff' : '#f59e0b';
+        ctx.fillStyle = this.hitFlash > 0 ? '#ffffff' : '#1e1b4b';
+        ctx.strokeStyle = '#fbbf24';
+        ctx.lineWidth = 2.5;
+
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+
+        // 内部のネオンリング
+        ctx.strokeStyle = '#fef08a';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius * 0.55, 0, Math.PI * 2);
+        ctx.stroke();
+
+        ctx.fillStyle = '#f59e0b';
+        ctx.font = '900 12px Orbitron, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('⚡', this.x, this.y);
+
+        ctx.restore();
+      }
+    }
+
+    // 前半面（Stage 2〜4）専用：小型の固定反射板
+    class StaticReflectorBar {
+      constructor(x1, y1, x2, y2) {
+        this.x1 = x1;
+        this.y1 = y1;
+        this.x2 = x2;
+        this.y2 = y2;
+      }
+      draw(ctx) {
+        ctx.save();
+        ctx.shadowBlur = 12;
+        ctx.shadowColor = '#06b6d4';
+        ctx.strokeStyle = '#22d3ee';
+        ctx.lineWidth = 4;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(this.x1, this.y1);
+        ctx.lineTo(this.x2, this.y2);
+        ctx.stroke();
+
+        // 芯の白色ライン
+        ctx.strokeStyle = '#e0f2fe';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+        ctx.restore();
+      }
+    }
+
+    class Brick {
+      constructor(col, row, hp, type = BrickType.SOFT) {
+        this.col = col;
+        this.row = row;
+        this.hp = hp;
+        this.maxHp = hp;
+        this.type = type;
+        this.hitFlash = 0;
+      }
+      takeDamage(dmg = 1) {
         this.hitFlash = 1.0;
-        this.hp -= amount;
+        this.hp -= dmg;
         return this.hp <= 0;
       }
-
-      draw(ctx, cellW, cellH, topOffset) {
-        const pad = 2.5;
-        const x = this.col * cellW + pad;
-        const y = topOffset + this.row * cellH + pad;
+      draw(ctx, cellW, cellH, originX, originY) {
+        const pad = 2.0;
+        const x = originX + this.col * cellW + pad;
+        const y = originY + this.row * cellH + pad;
         const w = cellW - pad * 2;
         const h = cellH - pad * 2;
         const r = 5;
 
         ctx.save();
-        let strokeColor = '#22d3ee';
-        let fillColor = '#0891b2';
-        let icon = '';
+        let strokeColor = '#22c55e';
+        let fillColor = '#0f172a';
+        let subSymbol = '';
 
-        if (this.type === BrickType.MULTIPLIER) {
-          strokeColor = '#00f0ff';
-          fillColor = '#0284c7';
-        } else if (this.type === BrickType.HARD) {
+        if (this.type === BrickType.HARD) {
           strokeColor = '#a855f7';
-          fillColor = '#475569';
-        } else if (this.type === BrickType.SOFT) {
-          strokeColor = '#4ade80';
-          fillColor = '#16a34a';
+          subSymbol = '🛡️';
+        } else if (this.type === BrickType.MULTI) {
+          strokeColor = '#06b6d4';
+          subSymbol = '✦x2';
         } else if (this.type === BrickType.ENERGY) {
-          strokeColor = '#facc15';
-          fillColor = '#ca8a04';
-          icon = '⚡';
+          strokeColor = '#eab308';
+          subSymbol = '⚡';
         } else if (this.type === BrickType.BOMB) {
-          strokeColor = '#fb7185';
-          fillColor = '#9f1239';
-          icon = '💣';
+          strokeColor = '#ef4444';
+          subSymbol = '💣';
         }
 
-        const hpRatio = Math.max(0.2, this.hp / this.maxHp);
-        ctx.shadowBlur = this.type === BrickType.MULTIPLIER ? 12 : 8;
+        ctx.shadowBlur = 10;
         ctx.shadowColor = strokeColor;
-        ctx.fillStyle = '#090d16';
+        ctx.fillStyle = fillColor;
         ctx.strokeStyle = this.hitFlash > 0 ? '#ffffff' : strokeColor;
-        ctx.lineWidth = this.type === BrickType.MULTIPLIER ? 2.3 : 1.9;
+        ctx.lineWidth = 2.0;
 
         ctx.beginPath();
         ctx.roundRect(x, y, w, h, r);
         ctx.fill();
         ctx.stroke();
 
-        ctx.fillStyle = fillColor;
-        ctx.globalAlpha = 0.25 + hpRatio * 0.55;
+        // 体力ゲージ背景
+        const ratio = Math.max(0.15, this.hp / this.maxHp);
+        ctx.fillStyle = strokeColor;
+        ctx.globalAlpha = 0.2 + ratio * 0.45;
         ctx.beginPath();
-        ctx.roundRect(x + 2, y + 2, w - 4, h - 4, r - 1.5);
+        ctx.roundRect(x + 2, y + 2, w - 4, h - 4, r - 2);
         ctx.fill();
         ctx.globalAlpha = 1.0;
 
+        if (subSymbol) {
+          ctx.font = `bold ${cellH * 0.28}px sans-serif`;
+          ctx.fillStyle = strokeColor;
+          ctx.textAlign = 'left';
+          ctx.textBaseline = 'top';
+          ctx.fillText(subSymbol, x + 3, y + 3);
+        }
+
+        // HP数値
         ctx.fillStyle = '#ffffff';
+        ctx.font = `900 ${cellH * 0.42}px 'Orbitron', sans-serif`;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.shadowBlur = 4;
         ctx.shadowColor = '#000000';
-
-        if (icon) {
-          ctx.font = `${cellH * 0.45}px sans-serif`;
-          ctx.fillText(icon, x + w / 2, y + h / 2);
-        } else if (this.type === BrickType.MULTIPLIER) {
-          ctx.font = `900 ${cellH * 0.42}px 'Orbitron', sans-serif`;
-          ctx.fillText(this.hp.toString(), x + w / 2 - 6, y + h / 2);
-          ctx.fillStyle = '#67e8f9';
-          ctx.font = `bold 8px 'Orbitron', sans-serif`;
-          ctx.fillText('x2', x + w - 10, y + 10);
-        } else if (this.type === BrickType.HARD) {
-          ctx.font = `900 ${cellH * 0.42}px 'Orbitron', sans-serif`;
-          ctx.fillText(this.hp.toString(), x + w / 2 - 6, y + h / 2);
-          ctx.fillStyle = '#cbd5e1';
-          ctx.font = `10px sans-serif`;
-          ctx.fillText('🛡️', x + w - 9, y + 10);
-        } else {
-          ctx.font = `900 ${cellH * 0.44}px 'Orbitron', sans-serif`;
-          ctx.fillText(this.hp.toString(), x + w / 2, y + h / 2);
-        }
+        ctx.fillText(this.hp.toString(), x + w / 2, y + h / 2 + 1);
 
         if (this.hitFlash > 0) {
           this.hitFlash -= 0.12;
@@ -745,14 +709,13 @@
         this.vy = 0;
         this.radius = BALL_RADIUS;
         this.active = false;
-        this.warpCooldown = 0;
         this.trail = [];
+        this.isCharged = false; // オーバードライブ状態
       }
       launch(vx, vy, speed = BASE_BALL_SPEED) {
         this.vx = vx * speed;
         this.vy = vy * speed;
         this.active = true;
-        this.warpCooldown = 0;
         this.trail = [];
       }
       draw(ctx) {
@@ -761,21 +724,21 @@
         for (let i = 0; i < this.trail.length; i++) {
           const t = this.trail[i];
           const alpha = (i / this.trail.length) * 0.5;
-          ctx.fillStyle = `rgba(34, 211, 238, ${alpha})`;
+          ctx.fillStyle = this.isCharged ? `rgba(251, 191, 36, ${alpha})` : `rgba(34, 211, 238, ${alpha})`;
           ctx.beginPath();
-          ctx.arc(t.x, t.y, Math.max(0.5, this.radius * (0.35 + (i / this.trail.length) * 0.55)), 0, Math.PI * 2);
+          ctx.arc(t.x, t.y, Math.max(0.5, this.radius * (0.3 + (i / this.trail.length) * 0.6)), 0, Math.PI * 2);
           ctx.fill();
         }
 
-        ctx.shadowBlur = 12;
-        ctx.shadowColor = '#00f0ff';
+        ctx.shadowBlur = this.isCharged ? 18 : 12;
+        ctx.shadowColor = this.isCharged ? '#fbbf24' : '#00f0ff';
         ctx.fillStyle = '#ffffff';
         ctx.beginPath();
-        ctx.arc(this.x, this.y, Math.max(1, this.radius), 0, Math.PI * 2);
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
         ctx.fill();
 
-        ctx.strokeStyle = '#38bdf8';
-        ctx.lineWidth = 1.8;
+        ctx.strokeStyle = this.isCharged ? '#f59e0b' : '#38bdf8';
+        ctx.lineWidth = 2;
         ctx.stroke();
         ctx.restore();
       }
@@ -785,43 +748,40 @@
       constructor() {
         this.canvas = document.getElementById('gameCanvas');
         this.ctx = this.canvas.getContext('2d');
-        this.bounds = { w: 320, h: 560 };
+        this.bounds = { w: 320, h: 480 };
         this.launchX = 160;
-        this.launchY = 530;
-        this.gridTopOffset = 15;
+        this.launchY = 460;
         this.cellW = 45;
-        this.cellH = 28;
+        this.cellH = 34;
 
         this.stage = 1;
         this.baseScore = 0;
         this.warpCount = 0;
-        this.shotsRemaining = 6;
-        this.continueCount = 0;
-        this.savedShotsTotal = 0;
+        this.continuesUsed = 0;
+        this.bestRating = parseInt(localStorage.getItem('neon_odyssey_best_rating') || '0', 10);
 
-        this.bestScore = parseInt(localStorage.getItem('neon_breaker_high_score') || '0', 10);
-
+        this.shotsLeft = 6;
         this.balls = [];
-        this.bricks = [];
+        this.grid = Array.from({ length: GRID_ROWS }, () => Array(COLS).fill(null));
         this.blackHoles = [];
-        this.barriers = [];
+        this.movingBouncers = [];
+        this.staticReflectors = [];
         this.particles = [];
         this.floatingTexts = [];
 
-        this.state = 'AIMING';
+        this.state = 'AIMING'; // AIMING | FIRING | CLEAR | GAMEOVER
         this.aimAngle = -Math.PI / 2;
         this.isAiming = false;
 
         this.speedMultiplier = 1;
         this.isFastForward = false;
         this.pressTimer = null;
-
         this.firstLandedX = null;
 
         this.initUI();
         this.setupResize();
         this.setupInputs();
-        this.startStage(1);
+        this.loadStage(1);
 
         window.requestAnimationFrame((t) => this.loop(t));
       }
@@ -829,8 +789,8 @@
       setupResize() {
         const resize = () => {
           const rect = this.canvas.parentElement.getBoundingClientRect();
-          const w = Math.max(240, rect.width || 320);
-          const h = Math.max(380, rect.height || 560);
+          const w = Math.max(260, rect.width || 320);
+          const h = Math.max(400, rect.height || 480);
           const dpr = Math.min(window.devicePixelRatio || 1, 2);
           this.canvas.width = w * dpr;
           this.canvas.height = h * dpr;
@@ -840,16 +800,15 @@
           this.bounds.w = w;
           this.bounds.h = h;
           this.cellW = this.bounds.w / COLS;
-          this.cellH = Math.min(32, (this.bounds.h * 0.44) / GRID_ROWS);
-          this.gridTopOffset = 16;
-          this.launchY = this.bounds.h - 20;
+          this.cellH = Math.min(36, (this.bounds.h * 0.42) / GRID_ROWS);
 
           if (this.state === 'AIMING') {
             if (this.launchX === null || this.launchX <= 0) {
               this.launchX = this.bounds.w / 2;
             }
+            this.launchY = this.bounds.h - 18;
           }
-          this.buildBarriersForStage(this.stage);
+          this.buildReflectiveObstaclesForStage();
         };
         window.addEventListener('resize', resize);
         resize();
@@ -857,42 +816,44 @@
 
       initUI() {
         this.stageEl = document.getElementById('stageText');
-        this.warpsEl = document.getElementById('warpsText');
+        this.warpEl = document.getElementById('warpText');
         this.shotsEl = document.getElementById('shotsText');
+        this.blocksEl = document.getElementById('blocksText');
         this.scoreEl = document.getElementById('scoreText');
-        this.bestScoreEl = document.getElementById('bestScoreText');
-        this.ballsEl = document.getElementById('ballsCountText');
+        this.bestRatingEl = document.getElementById('bestRatingText');
+        this.continuesCountEl = document.getElementById('continuesCountText');
+
         this.speedBtn = document.getElementById('speedBtn');
         this.muteBtn = document.getElementById('muteBtn');
         this.fastForwardBadge = document.getElementById('fastForwardBadge');
-        this.hudContinueCountEl = document.getElementById('hudContinueCount');
 
         this.stageCompleteModal = document.getElementById('stageCompleteModal');
-        this.stageCompleteTitle = document.getElementById('stageCompleteTitle');
-        this.stageCompleteSubtitle = document.getElementById('stageCompleteSubtitle');
-        this.clearedStageNum = document.getElementById('clearedStageNum');
-        this.clearedBaseScore = document.getElementById('clearedBaseScore');
-        this.clearedWarpBonus = document.getElementById('clearedWarpBonus');
-        this.clearedShotBonus = document.getElementById('clearedShotBonus');
-        this.clearedContPenalty = document.getElementById('clearedContPenalty');
-        this.clearedRankTag = document.getElementById('clearedRankTag');
-        this.clearedTotalScore = document.getElementById('clearedTotalScore');
-        this.clearedAllTimeBest = document.getElementById('clearedAllTimeBest');
+        this.completedStageText = document.getElementById('completedStageText');
+        this.stageWarpText = document.getElementById('stageWarpText');
+        this.stageShotsLeftText = document.getElementById('stageShotsLeftText');
+        this.stageContinuesText = document.getElementById('stageContinuesText');
+        this.stageRatingText = document.getElementById('stageRatingText');
         this.nextStageBtn = document.getElementById('nextStageBtn');
+
+        this.allClearModal = document.getElementById('allClearModal');
+        this.finalRankText = document.getElementById('finalRankText');
+        this.allClearRating = document.getElementById('allClearRating');
+        this.allClearWarps = document.getElementById('allClearWarps');
+        this.allClearContinues = document.getElementById('allClearContinues');
+        this.allClearBest = document.getElementById('allClearBest');
+        this.allClearBonusBadge = document.getElementById('allClearBonusBadge');
+        this.allClearRestartBtn = document.getElementById('allClearRestartBtn');
 
         this.gameOverModal = document.getElementById('gameOverModal');
         this.finalStageEl = document.getElementById('finalStage');
-        this.finalRemainingBlocksEl = document.getElementById('finalRemainingBlocks');
         this.finalWarpsEl = document.getElementById('finalWarps');
-        this.finalContinuesCountEl = document.getElementById('finalContinuesCount');
-        this.finalRankTag = document.getElementById('finalRankTag');
         this.finalScoreEl = document.getElementById('finalScore');
-        this.finalAllTimeBest = document.getElementById('finalAllTimeBest');
+        this.finalContinuesEl = document.getElementById('finalContinues');
         this.continueBtn = document.getElementById('continueBtn');
         this.retryBtn = document.getElementById('retryBtn');
         this.resetGameBtn = document.getElementById('resetGameBtn');
 
-        this.bestScoreEl.textContent = this.bestScore.toLocaleString();
+        this.bestRatingEl.textContent = this.bestRating.toLocaleString();
 
         this.speedBtn.addEventListener('click', () => {
           const speeds = [1, 2, 4, 8];
@@ -908,47 +869,30 @@
 
         this.nextStageBtn.addEventListener('click', () => {
           this.stageCompleteModal.classList.add('hidden');
-          if (this.stage >= TOTAL_STAGES) {
-            this.continueCount = 0;
-            this.baseScore = 0;
-            this.warpCount = 0;
-            this.savedShotsTotal = 0;
-            this.startStage(1);
-          } else {
-            this.startStage(this.stage + 1);
-          }
+          this.loadStage(this.stage + 1);
         });
 
-        // Continue penalty: Consumes 10 Warps and adds continue penalty
+        this.allClearRestartBtn.addEventListener('click', () => {
+          this.allClearModal.classList.add('hidden');
+          this.fullRestart();
+        });
+
         this.continueBtn.addEventListener('click', () => {
-          this.gameOverModal.classList.add('hidden');
-          this.continueCount++;
-          this.warpCount = Math.max(0, this.warpCount - 10);
-          this.resumeStageWithContinue();
+          this.useContinue();
         });
 
         this.retryBtn.addEventListener('click', () => {
           this.gameOverModal.classList.add('hidden');
-          this.continueCount = 0;
-          this.baseScore = 0;
-          this.warpCount = 0;
-          this.savedShotsTotal = 0;
-          this.startStage(1);
+          this.fullRestart();
         });
 
         this.resetGameBtn.addEventListener('click', () => {
-          this.stageCompleteModal.classList.add('hidden');
-          this.gameOverModal.classList.add('hidden');
-          this.continueCount = 0;
-          this.baseScore = 0;
-          this.warpCount = 0;
-          this.savedShotsTotal = 0;
-          this.startStage(1);
+          this.fullRestart();
         });
       }
 
       setupInputs() {
-        const getCanvasCoord = (e) => {
+        const getCoord = (e) => {
           const rect = this.canvas.getBoundingClientRect();
           const clientX = e.touches ? e.touches[0].clientX : e.clientX;
           const clientY = e.touches ? e.touches[0].clientY : e.clientY;
@@ -960,24 +904,23 @@
 
         const onPointerDown = (e) => {
           sound.init();
-
           if (this.state === 'FIRING') {
             this.pressTimer = setTimeout(() => {
               this.isFastForward = true;
               this.fastForwardBadge.classList.remove('hidden');
-            }, 180);
+            }, 160);
             return;
           }
 
           if (this.state !== 'AIMING') return;
           this.isAiming = true;
-          const p = getCanvasCoord(e);
+          const p = getCoord(e);
           this.updateAimAngle(p.x, p.y);
         };
 
         const onPointerMove = (e) => {
           if (!this.isAiming || this.state !== 'AIMING') return;
-          const p = getCanvasCoord(e);
+          const p = getCoord(e);
           this.updateAimAngle(p.x, p.y);
         };
 
@@ -990,6 +933,7 @@
             this.isFastForward = false;
             this.fastForwardBadge.classList.add('hidden');
           }
+
           if (this.isAiming && this.state === 'AIMING') {
             this.isAiming = false;
             this.fireBall();
@@ -1017,415 +961,274 @@
         const dist = Math.hypot(dx, dy);
         if (dist > 8) {
           let ang = Math.atan2(dy, dx);
-          ang = Math.max(-Math.PI + 0.1, Math.min(-0.1, ang));
+          ang = Math.max(-Math.PI + 0.12, Math.min(-0.12, ang));
           this.aimAngle = ang;
         }
       }
 
-      calculateFinalScore() {
-        const warpBonus = this.warpCount * 150;
-        const shotBonus = (this.savedShotsTotal + this.shotsRemaining) * 500;
-        const contPenalty = this.continueCount * 2500;
-        const total = Math.max(0, this.baseScore + warpBonus + shotBonus - contPenalty);
-        return {
-          total,
-          base: this.baseScore,
-          warpBonus,
-          shotBonus,
-          contPenalty
-        };
+      fullRestart() {
+        this.stage = 1;
+        this.baseScore = 0;
+        this.warpCount = 0;
+        this.continuesUsed = 0;
+        this.loadStage(1);
       }
 
-      getRank(totalScore) {
-        if (totalScore >= 35000) return 'S+';
-        if (totalScore >= 24000) return 'S';
-        if (totalScore >= 16000) return 'A';
-        if (totalScore >= 9000) return 'B';
+      useContinue() {
+        this.continuesUsed++;
+        // ワープ10回分を消費ペナルティ
+        this.warpCount = Math.max(0, this.warpCount - 10);
+        this.shotsLeft += 3;
+
+        sound.playPowerup();
+        this.gameOverModal.classList.add('hidden');
+        this.state = 'AIMING';
+        this.balls = [];
+        this.firstLandedX = null;
+        this.updateHUD();
+
+        this.floatingTexts.push(new FloatText(this.bounds.w / 2, this.launchY - 30, '⚡ CONTINUED (-10 WARPS)', '#34d399', 15));
+      }
+
+      calculateRating() {
+        const warpBonus = this.warpCount * 150;
+        const shotBonus = this.shotsLeft * 400;
+        const contPenalty = this.continuesUsed * 2500;
+        const total = Math.max(0, this.baseScore + warpBonus + shotBonus - contPenalty);
+        return Math.floor(total);
+      }
+
+      getRank(rating) {
+        if (rating >= 35000) return 'S+';
+        if (rating >= 25000) return 'S';
+        if (rating >= 16000) return 'A';
+        if (rating >= 9000) return 'B';
         return 'C';
       }
 
-      checkAndUpdateHighScore(scoreVal) {
-        if (scoreVal > this.bestScore) {
-          this.bestScore = scoreVal;
-          localStorage.setItem('neon_breaker_high_score', this.bestScore.toString());
-          this.bestScoreEl.textContent = this.bestScore.toLocaleString();
-        }
-      }
+      updateHUD() {
+        this.stageEl.textContent = `${this.stage}/${TOTAL_STAGES}`;
+        this.warpEl.textContent = this.warpCount;
+        this.shotsEl.textContent = this.shotsLeft;
+        this.continuesCountEl.textContent = this.continuesUsed;
 
-      buildBarriersForStage(stageNum) {
-        this.barriers = [];
-        if (stageNum < 5) return;
-
-        const w = this.bounds.w;
-        const midY = this.gridTopOffset + GRID_ROWS * this.cellH + 40;
-
-        if (stageNum === 5) {
-          // One center angled diamond reflector
-          this.barriers.push(new ReflectiveBarrier(w * 0.28, midY + 15, w * 0.72, midY + 15, 6, '#f43f5e'));
-        } else if (stageNum === 6) {
-          // Slanted double chevron
-          this.barriers.push(new ReflectiveBarrier(w * 0.15, midY - 10, w * 0.45, midY + 25, 6, '#f59e0b'));
-          this.barriers.push(new ReflectiveBarrier(w * 0.85, midY - 10, w * 0.55, midY + 25, 6, '#f59e0b'));
-        } else if (stageNum === 7) {
-          // Asymmetric deflectors
-          this.barriers.push(new ReflectiveBarrier(w * 0.12, midY - 20, w * 0.48, midY - 5, 6.5, '#ec4899'));
-          this.barriers.push(new ReflectiveBarrier(w * 0.52, midY + 30, w * 0.88, midY + 15, 6.5, '#ec4899'));
-        } else if (stageNum === 8) {
-          // Funnel trap
-          this.barriers.push(new ReflectiveBarrier(w * 0.18, midY - 25, w * 0.38, midY + 20, 6.5, '#38bdf8'));
-          this.barriers.push(new ReflectiveBarrier(w * 0.82, midY - 25, w * 0.62, midY + 20, 6.5, '#38bdf8'));
-        } else if (stageNum === 9) {
-          // Triple pinball gates
-          this.barriers.push(new ReflectiveBarrier(w * 0.10, midY, w * 0.35, midY + 18, 6.5, '#a855f7'));
-          this.barriers.push(new ReflectiveBarrier(w * 0.40, midY - 20, w * 0.60, midY - 20, 6.5, '#22c55e'));
-          this.barriers.push(new ReflectiveBarrier(w * 0.65, midY + 18, w * 0.90, midY, 6.5, '#a855f7'));
-        } else if (stageNum === 10) {
-          // Final Crown Barrier Defense
-          this.barriers.push(new ReflectiveBarrier(w * 0.12, midY - 15, w * 0.36, midY + 12, 7, '#f43f5e'));
-          this.barriers.push(new ReflectiveBarrier(w * 0.38, midY + 25, w * 0.62, midY + 25, 7, '#eab308'));
-          this.barriers.push(new ReflectiveBarrier(w * 0.64, midY + 12, w * 0.88, midY - 15, 7, '#f43f5e'));
-        }
-      }
-
-      startStage(stageNum) {
-        this.stage = Math.min(stageNum, TOTAL_STAGES);
-        this.shotsRemaining = Math.max(5, 7 - Math.floor((this.stage - 1) / 3));
-        this.balls = [];
-        this.bricks = [];
-        this.particles = [];
-        this.floatingTexts = [];
-
-        this.launchX = this.bounds.w / 2;
-        this.launchY = this.bounds.h - 20;
-        this.state = 'AIMING';
-        this.firstLandedX = null;
-
-        this.fastForwardBadge.classList.add('hidden');
-        this.buildStageFormation(this.stage);
-        this.buildBarriersForStage(this.stage);
-
-        this.blackHoles = [];
-        const miniRadius = 13.5;
-        for (let i = 0; i < BLACK_HOLE_COUNT; i++) {
-          const colX = ((i % 3) + 1) * (this.bounds.w / 4) + (Math.random() - 0.5) * 20;
-          const rowY = this.gridTopOffset + 25 + (i * ((this.bounds.h - 90) / BLACK_HOLE_COUNT));
-          this.blackHoles.push(new MiniBlackHole(colX, rowY, miniRadius));
-        }
-
-        this.updateHUD();
-      }
-
-      resumeStageWithContinue() {
-        this.shotsRemaining = 3;
-        this.balls = [];
-        this.state = 'AIMING';
-        this.firstLandedX = null;
-        this.launchX = this.bounds.w / 2;
-        sound.playEnergy();
-
-        this.floatingTexts.push(new FloatText(
-          this.launchX,
-          this.launchY - 30,
-          '⚡ RESUMED! (-10 WARPS / +3 SHOTS)',
-          '#10b981',
-          14
-        ));
-
-        this.updateHUD();
-      }
-
-      buildStageFormation(stageNum) {
-        const isFinal = stageNum === TOTAL_STAGES;
-
+        let activeBlocks = 0;
         for (let r = 0; r < GRID_ROWS; r++) {
           for (let c = 0; c < COLS; c++) {
-            let spawn = false;
-            let type = BrickType.SOFT;
-            let hp = 1;
+            if (this.grid[r][c]) activeBlocks++;
+          }
+        }
+        this.blocksEl.textContent = activeBlocks;
+        const rating = this.calculateRating();
+        this.scoreEl.textContent = rating.toLocaleString();
 
-            if (isFinal) {
-              if (r < 7 && (r + c) % 2 === 0) {
-                spawn = true;
-                if (r === 0 || r === 2) {
-                  type = BrickType.HARD;
-                  hp = 6;
-                } else if (r === 1 && (c === 1 || c === 3 || c === 5)) {
-                  type = BrickType.MULTIPLIER;
-                  hp = 3;
-                } else if (r === 3 && c === 3) {
-                  type = BrickType.ENERGY;
-                  hp = 3;
-                } else if (r === 5 && (c === 1 || c === 5)) {
-                  type = BrickType.BOMB;
-                  hp = 1;
-                } else {
-                  type = BrickType.SOFT;
-                  hp = 2;
-                }
-              }
-            } else {
-              const patternIdx = (stageNum - 1) % 4;
+        if (rating > this.bestRating) {
+          this.bestRating = rating;
+          localStorage.setItem('neon_odyssey_best_rating', this.bestRating.toString());
+          this.bestRatingEl.textContent = this.bestRating.toLocaleString();
+        }
+      }
 
-              if (patternIdx === 0) {
-                if (r < 5) {
-                  spawn = true;
-                  if (r === 0) {
-                    type = BrickType.HARD;
-                    hp = Math.min(5, 2 + Math.floor(stageNum / 2));
-                  } else if (r === 1 && (c === 1 || c === 5)) {
-                    type = BrickType.MULTIPLIER;
-                    hp = 2;
-                  } else if (r === 2 && (c === 2 || c === 4)) {
-                    type = BrickType.ENERGY;
-                    hp = 2;
-                  } else if (r === 4 && (c === 0 || c === 6)) {
-                    type = BrickType.BOMB;
-                    hp = 1;
-                  } else {
-                    type = BrickType.SOFT;
-                    hp = 1;
-                  }
-                }
-              } else if (patternIdx === 1) {
-                const distFromCenter = Math.abs(c - 3) + Math.abs(r - 3);
-                if (distFromCenter <= 3) {
-                  spawn = true;
-                  if (distFromCenter === 0) {
-                    type = BrickType.MULTIPLIER;
-                    hp = 3;
-                  } else if (distFromCenter === 1) {
-                    type = BrickType.HARD;
-                    hp = Math.min(5, 3 + Math.floor(stageNum / 3));
-                  } else if (distFromCenter === 2 && (c === 3 || r === 3)) {
-                    type = BrickType.ENERGY;
-                    hp = 2;
-                  } else if (distFromCenter === 3 && (c === 0 || c === 6)) {
-                    type = BrickType.BOMB;
-                    hp = 1;
-                  } else {
-                    type = BrickType.SOFT;
-                    hp = 1;
-                  }
-                }
-              } else if (patternIdx === 2) {
-                if (r < 6 && (r + c) % 2 === 0) {
-                  spawn = true;
-                  if (r === 0 || r === 1) {
-                    type = (c === 2 || c === 4) ? BrickType.MULTIPLIER : BrickType.HARD;
-                    hp = 3;
-                  } else if (r === 3 && c === 3) {
-                    type = BrickType.ENERGY;
-                    hp = 2;
-                  } else if (r === 5 && (c === 1 || c === 5)) {
-                    type = BrickType.BOMB;
-                    hp = 1;
-                  } else {
-                    type = BrickType.SOFT;
-                    hp = 1;
-                  }
-                }
-              } else {
-                if (r < 7) {
-                  if (c === 0 || c === 1 || c === 5 || c === 6 || r === 1 || r === 4) {
-                    spawn = true;
-                    if (r === 1 && c === 3) {
-                      type = BrickType.MULTIPLIER;
-                      hp = 3;
-                    } else if (r === 4 && (c === 0 || c === 6)) {
-                      type = BrickType.ENERGY;
-                      hp = 2;
-                    } else if (r === 2 && (c === 0 || c === 6)) {
-                      type = BrickType.BOMB;
-                      hp = 1;
-                    } else if (c === 1 || c === 5) {
-                      type = BrickType.HARD;
-                      hp = Math.min(5, 2 + Math.floor(stageNum / 3));
-                    } else {
-                      type = BrickType.SOFT;
-                      hp = 1;
-                    }
-                  }
-                }
-              }
-            }
+      buildReflectiveObstaclesForStage() {
+        this.staticReflectors = [];
+        this.movingBouncers = [];
 
-            if (spawn) {
-              this.bricks.push(new Brick(c, r, type, hp));
-            }
+        // 前半面（Stage 2〜4）：小型の固定反射板で落下を程よく防ぐ
+        if (this.stage >= 2 && this.stage <= 4) {
+          const midY = this.bounds.h * 0.62;
+          const span = this.bounds.w * 0.28; // 幅を小さく抑えて閉じ込めを防止
+          if (this.stage === 2) {
+            // 中央に小さめのV字反発板
+            this.staticReflectors.push(new StaticReflectorBar(this.bounds.w * 0.36, midY + 15, this.bounds.w * 0.5, midY));
+            this.staticReflectors.push(new StaticReflectorBar(this.bounds.w * 0.5, midY, this.bounds.w * 0.64, midY + 15));
+          } else if (this.stage === 3) {
+            // 左右に小さな斜めバウンス板
+            this.staticReflectors.push(new StaticReflectorBar(this.bounds.w * 0.12, midY, this.bounds.w * 0.12 + span, midY - 20));
+            this.staticReflectors.push(new StaticReflectorBar(this.bounds.w * 0.88 - span, midY - 20, this.bounds.w * 0.88, midY));
+          } else if (this.stage === 4) {
+            // 中央下に短い水平バー
+            this.staticReflectors.push(new StaticReflectorBar(this.bounds.w * 0.35, midY + 25, this.bounds.w * 0.65, midY + 25));
+          }
+        }
+
+        // 後半面（Stage 5〜10）：固定壁はゼロ！ブラックホール同等サイズの移動反射コアが飛び交う
+        if (this.stage >= 5) {
+          const count = this.stage <= 7 ? 2 : 3;
+          for (let i = 0; i < count; i++) {
+            const x = (this.bounds.w / (count + 1)) * (i + 1);
+            const y = this.bounds.h * 0.45 + (i % 2 === 0 ? -25 : 35);
+            const vx = (Math.random() < 0.5 ? 1 : -1) * (0.8 + Math.random() * 0.6);
+            const vy = (Math.random() < 0.5 ? 1 : -1) * (0.8 + Math.random() * 0.6);
+            this.movingBouncers.push(new MovingBouncerCore(x, y, vx, vy));
           }
         }
       }
 
-      updateHUD() {
-        if (this.stage === TOTAL_STAGES) {
-          this.stageEl.textContent = `FINAL`;
-        } else {
-          this.stageEl.textContent = `${this.stage}/${TOTAL_STAGES}`;
-        }
-        if (this.warpsEl) {
-          this.warpsEl.textContent = this.warpCount.toLocaleString();
-        }
-        this.shotsEl.textContent = this.shotsRemaining;
+      loadStage(stageNum) {
+        this.stage = Math.min(stageNum, TOTAL_STAGES);
+        this.grid = Array.from({ length: GRID_ROWS }, () => Array(COLS).fill(null));
+        this.balls = [];
+        this.particles = [];
+        this.floatingTexts = [];
+        this.firstLandedX = null;
+        this.state = 'AIMING';
 
-        const currentScoreObj = this.calculateFinalScore();
-        this.scoreEl.textContent = currentScoreObj.total.toLocaleString();
-        this.bestScoreEl.textContent = this.bestScore.toLocaleString();
+        this.shotsLeft = Math.max(5, 7 - Math.floor((this.stage - 1) / 3));
 
-        if (this.hudContinueCountEl) {
-          this.hudContinueCountEl.textContent = this.continueCount;
+        // 5基の小型ブラックホールを初期化（画面全域をバウンド移動）
+        this.blackHoles = [];
+        for (let i = 0; i < 5; i++) {
+          const colX = (this.bounds.w / 6) * (i + 1);
+          const rowY = 40 + i * (this.bounds.h * 0.15);
+          const angle = Math.random() * Math.PI * 2;
+          const spd = 0.7 + Math.random() * 0.7;
+          this.blackHoles.push(new MiniBlackHole(colX, rowY, Math.cos(angle) * spd, Math.sin(angle) * spd));
         }
 
-        const activeCount = this.balls.filter(b => b.active).length || (this.state === 'AIMING' ? 1 : 0);
-        this.ballsEl.textContent = activeCount;
+        this.buildReflectiveObstaclesForStage();
+        this.buildStagePattern(this.stage);
+        this.updateHUD();
+      }
+
+      buildStagePattern(stg) {
+        const patterns = {
+          1: [
+            [0,1,1,1,1,1,0],
+            [1,1,2,3,2,1,1],
+            [1,2,1,1,1,2,1],
+            [0,1,0,4,0,1,0]
+          ],
+          2: [
+            [1,0,1,0,1,0,1],
+            [0,2,1,3,1,2,0],
+            [1,1,2,1,2,1,1],
+            [0,1,0,4,0,1,0]
+          ],
+          3: [
+            [2,1,2,1,2,1,2],
+            [1,3,1,4,1,3,1],
+            [2,1,2,1,2,1,2],
+            [0,2,0,2,0,2,0]
+          ],
+          4: [
+            [1,1,1,0,1,1,1],
+            [1,2,3,1,3,2,1],
+            [2,4,1,2,1,4,2],
+            [0,1,2,0,2,1,0]
+          ],
+          5: [
+            [2,2,3,2,3,2,2],
+            [1,4,1,1,1,4,1],
+            [2,1,2,3,2,1,2],
+            [1,2,1,2,1,2,1]
+          ],
+          6: [
+            [1,2,3,4,3,2,1],
+            [2,3,2,1,2,3,2],
+            [3,1,4,2,4,1,3],
+            [0,2,1,3,1,2,0]
+          ],
+          7: [
+            [2,3,2,3,2,3,2],
+            [3,4,3,1,3,4,3],
+            [2,1,2,4,2,1,2],
+            [1,2,1,2,1,2,1]
+          ],
+          8: [
+            [3,2,3,1,3,2,3],
+            [2,4,2,3,2,4,2],
+            [3,2,1,4,1,2,3],
+            [2,3,2,1,2,3,2]
+          ],
+          9: [
+            [3,3,4,3,4,3,3],
+            [2,4,2,3,2,4,2],
+            [3,2,3,1,3,2,3],
+            [2,3,4,2,4,3,2]
+          ],
+          10: [
+            [4,3,4,3,4,3,4],
+            [3,2,3,4,3,2,3],
+            [4,3,2,3,2,3,4],
+            [3,4,3,2,3,4,3],
+            [0,2,4,1,4,2,0]
+          ]
+        };
+
+        const gridData = patterns[stg] || patterns[10];
+        for (let r = 0; r < gridData.length && r < GRID_ROWS; r++) {
+          for (let c = 0; c < COLS; c++) {
+            const val = gridData[r][c];
+            if (val === 0) continue;
+
+            let btype = BrickType.SOFT;
+            let hp = 2;
+
+            if (val === 1) {
+              btype = BrickType.SOFT;
+              hp = 1 + (stg > 4 ? 1 : 0);
+            } else if (val === 2) {
+              btype = (r + c) % 2 === 0 ? BrickType.HARD : BrickType.SOFT;
+              hp = 3 + Math.floor(stg * 0.4);
+            } else if (val === 3) {
+              btype = BrickType.MULTI;
+              hp = 2 + Math.floor(stg * 0.3);
+            } else if (val === 4) {
+              btype = Math.random() < 0.5 ? BrickType.ENERGY : BrickType.BOMB;
+              hp = 2;
+            }
+
+            this.grid[r][c] = new Brick(c, r, hp, btype);
+          }
+        }
       }
 
       fireBall() {
-        if (this.shotsRemaining <= 0) return;
-
+        if (this.shotsLeft <= 0) return;
         this.state = 'FIRING';
-        this.shotsRemaining--;
+        this.shotsLeft--;
+        this.updateHUD();
+
         this.balls = [];
         this.firstLandedX = null;
 
-        const ball = new Ball(this.launchX, this.launchY - BALL_RADIUS - 1);
+        const b = new Ball(this.launchX, this.launchY - BALL_RADIUS - 1);
         const vx = Math.cos(this.aimAngle);
         const vy = Math.sin(this.aimAngle);
-        ball.launch(vx, vy);
-        this.balls.push(ball);
-
-        sound.playPop(1.2);
-        this.updateHUD();
-      }
-
-      spawnSplitBallAt(x, y) {
-        const activeCount = this.balls.filter(b => b.active).length;
-        if (activeCount >= MAX_ACTIVE_BALLS) return;
-
-        sound.playSplit();
-        const spawnAngle = Math.random() * Math.PI * 2;
-        const b = new Ball(x, y);
-        b.launch(Math.cos(spawnAngle), Math.sin(spawnAngle), BASE_BALL_SPEED * 1.05);
+        b.launch(vx, vy);
         this.balls.push(b);
 
-        for (let p = 0; p < 5; p++) {
-          this.particles.push(new Particle(x, y, '#22d3ee', 4, 2, 0.6));
-        }
-        this.updateHUD();
+        sound.playLaunch();
       }
 
-      triggerBombExplosion(centerCol, centerRow) {
+      spawnWarpClone(sourceX, sourceY, baseVx, baseVy) {
+        if (this.balls.length >= MAX_BALLS_ON_SCREEN) return;
+        const extra = new Ball(sourceX, sourceY);
+        const spreadAngle = Math.atan2(baseVy, baseVx) + (Math.random() - 0.5) * 0.8;
+        extra.launch(Math.cos(spreadAngle), Math.sin(spreadAngle));
+        this.balls.push(extra);
+        this.floatingTexts.push(new FloatText(sourceX, sourceY, '🌀 WARP SPLIT! +1', '#e879f9', 14));
+        sound.playPowerup();
+      }
+
+      explodeBombAt(col, row) {
         sound.playExplosion();
-        const cx = centerCol * this.cellW + this.cellW / 2;
-        const cy = this.gridTopOffset + centerRow * this.cellH + this.cellH / 2;
-        this.floatingTexts.push(new FloatText(cx, cy, '💣 BOOM!!', '#f43f5e', 18));
+        const cx = col * this.cellW + this.cellW / 2;
+        const cy = row * this.cellH + this.cellH / 2;
+        this.floatingTexts.push(new FloatText(cx, cy, '💣 BOOM!', '#ef4444', 16));
 
-        for (let i = this.bricks.length - 1; i >= 0; i--) {
-          const b = this.bricks[i];
-          if (Math.abs(b.col - centerCol) <= 1 && Math.abs(b.row - centerRow) <= 1) {
-            const dead = b.takeDamage(10);
-            this.baseScore += 30;
-            if (dead) {
-              this.bricks.splice(i, 1);
+        for (let r = row - 1; r <= row + 1; r++) {
+          for (let c = col - 1; c <= col + 1; c++) {
+            if (r >= 0 && r < GRID_ROWS && c >= 0 && c < COLS && this.grid[r][c]) {
+              const destroyed = this.grid[r][c].takeDamage(4);
+              this.baseScore += 50;
+              if (destroyed) this.grid[r][c] = null;
             }
           }
         }
-
-        for (let p = 0; p < 24; p++) {
-          this.particles.push(new Particle(cx, cy, '#f43f5e', 6, 3, 1.0));
+        for (let p = 0; p < 20; p++) {
+          this.particles.push(new Particle(cx, cy, '#ef4444', 6, 3, 1.0));
         }
-        this.updateHUD();
-        this.checkStageClear();
-      }
-
-      checkStageClear() {
-        if (this.bricks.length === 0 && this.state !== 'STAGECLEAR') {
-          this.state = 'STAGECLEAR';
-          sound.playStageClear();
-
-          const isFinal = this.stage >= TOTAL_STAGES;
-          const stageBonus = isFinal ? 5000 : 1200;
-          this.baseScore += stageBonus;
-          this.savedShotsTotal += this.shotsRemaining;
-
-          const scoreObj = this.calculateFinalScore();
-          this.checkAndUpdateHighScore(scoreObj.total);
-
-          for (let p = 0; p < (isFinal ? 90 : 50); p++) {
-            this.particles.push(new Particle(
-              this.bounds.w / 2 + (Math.random() - 0.5) * 180,
-              this.bounds.h / 3 + (Math.random() - 0.5) * 140,
-              ['#22d3ee', '#ec4899', '#facc15', '#4ade80', '#c084fc'][Math.floor(Math.random() * 5)],
-              9, 4.5, 2.0
-            ));
-          }
-
-          setTimeout(() => {
-            if (isFinal) {
-              this.stageCompleteTitle.textContent = '👑 ALL STAGES CLEARED!';
-              if (this.continueCount === 0) {
-                this.stageCompleteSubtitle.textContent = '👑 奇跡のノーコンティニュー完全制覇達成！！！';
-              } else {
-                this.stageCompleteSubtitle.textContent = `全10ステージ制覇！（コンティニュー: ${this.continueCount}回）`;
-              }
-              this.nextStageBtn.textContent = 'PLAY FROM START 🔄';
-            } else {
-              this.stageCompleteTitle.textContent = 'STAGE COMPLETE!';
-              this.stageCompleteSubtitle.textContent = '全てのブロックの破壊に成功しました！';
-              this.nextStageBtn.textContent = 'NEXT STAGE ▶';
-            }
-
-            this.clearedStageNum.textContent = `${this.stage} / ${TOTAL_STAGES}`;
-            this.clearedBaseScore.textContent = scoreObj.base.toLocaleString();
-            this.clearedWarpBonus.textContent = `+${scoreObj.warpBonus.toLocaleString()} (${this.warpCount}回)`;
-            this.clearedShotBonus.textContent = `+${scoreObj.shotBonus.toLocaleString()} (${this.savedShotsTotal}発)`;
-            this.clearedContPenalty.textContent = `-${scoreObj.contPenalty.toLocaleString()} (${this.continueCount}回)`;
-
-            const rank = this.getRank(scoreObj.total);
-            this.clearedRankTag.textContent = rank;
-            this.clearedTotalScore.textContent = scoreObj.total.toLocaleString();
-            this.clearedAllTimeBest.textContent = this.bestScore.toLocaleString();
-
-            this.stageCompleteModal.classList.remove('hidden');
-          }, 450);
-        }
-      }
-
-      triggerGameOver() {
-        this.state = 'GAMEOVER';
-        sound.playGameOver();
-
-        const scoreObj = this.calculateFinalScore();
-        this.checkAndUpdateHighScore(scoreObj.total);
-
-        this.finalStageEl.textContent = `STAGE ${this.stage} / ${TOTAL_STAGES}`;
-        this.finalRemainingBlocksEl.textContent = `${this.bricks.length} 個`;
-        this.finalWarpsEl.textContent = `${this.warpCount}回 (+${scoreObj.warpBonus.toLocaleString()})`;
-        this.finalContinuesCountEl.textContent = `${this.continueCount}回 (-${scoreObj.contPenalty.toLocaleString()})`;
-
-        const rank = this.getRank(scoreObj.total);
-        this.finalRankTag.textContent = rank;
-        this.finalScoreEl.textContent = scoreObj.total.toLocaleString();
-        this.finalAllTimeBest.textContent = this.bestScore.toLocaleString();
-
-        this.gameOverModal.classList.remove('hidden');
-      }
-
-      finishTurn() {
-        if (this.bricks.length === 0) {
-          this.checkStageClear();
-          return;
-        }
-
-        if (this.shotsRemaining <= 0) {
-          this.triggerGameOver();
-          return;
-        }
-
-        this.state = 'AIMING';
-        this.launchX = this.firstLandedX !== null ? Math.max(16, Math.min(this.bounds.w - 16, this.firstLandedX)) : this.bounds.w / 2;
-        this.firstLandedX = null;
-        this.balls = [];
-        this.updateHUD();
       }
 
       physicsStep() {
@@ -1433,10 +1236,14 @@
         const subSteps = 4;
         const totalLoops = effectiveSpeed;
 
-        const minY = 12;
-        const maxY = this.launchY - 35;
+        // 小型ブラックホールの自律遊弋
         for (const bh of this.blackHoles) {
-          bh.update(this.bounds, minY, maxY);
+          bh.update(this.bounds.w, this.bounds.h, 24, this.launchY - 10);
+        }
+
+        // 移動反射コアの自律巡回
+        for (const bouncer of this.movingBouncers) {
+          bouncer.update(this.bounds.w, this.bounds.h, this.bounds.h * 0.35, this.launchY - 14);
         }
 
         for (let loop = 0; loop < totalLoops; loop++) {
@@ -1445,19 +1252,15 @@
               const ball = this.balls[i];
               if (!ball.active) continue;
 
-              if (ball.warpCooldown > 0) {
-                ball.warpCooldown--;
-              }
-
               ball.x += ball.vx / subSteps;
               ball.y += ball.vy / subSteps;
 
               if (s % 2 === 0) {
                 ball.trail.push({ x: ball.x, y: ball.y });
-                if (ball.trail.length > 6) ball.trail.shift();
+                if (ball.trail.length > 5) ball.trail.shift();
               }
 
-              // Walls
+              // 壁衝突
               if (ball.x - ball.radius < 0) {
                 ball.x = ball.radius;
                 ball.vx = Math.abs(ball.vx);
@@ -1468,195 +1271,310 @@
                 sound.playPop(1.1);
               }
 
-              // Ceiling
               if (ball.y - ball.radius < 0) {
                 ball.y = ball.radius;
                 ball.vy = Math.abs(ball.vy);
                 sound.playPop(1.2);
               }
 
-              // Floor Landing
+              // 床への自然着地
               if (ball.vy > 0 && ball.y + ball.radius >= this.launchY) {
                 ball.y = this.launchY;
                 ball.active = false;
                 ball.trail = [];
+                ball.isCharged = false;
 
                 if (this.firstLandedX === null) {
                   this.firstLandedX = ball.x;
                 }
-                this.updateHUD();
                 continue;
               }
 
-              this.checkBallCollisions(ball);
+              // 衝突判定
+              this.handleReflectorCollisions(ball);
+              this.handleMovingBouncerCollisions(ball);
+              this.handleBlackHoleGravitation(ball);
+              this.handleBrickCollisions(ball);
             }
           }
         }
 
         if (this.state === 'FIRING') {
-          const allSettled = this.balls.length > 0 && this.balls.every(b => !b.active);
+          const allSettled = this.balls.every(b => !b.active);
           if (allSettled) {
             this.finishTurn();
           }
         }
       }
 
-      checkBallCollisions(ball) {
-        // 1. Neon Reflective Barriers (Stage 5+)
-        for (const barrier of this.barriers) {
-          const hitPoint = barrier.checkCollision(ball);
-          if (hitPoint) {
-            this.baseScore += 5;
-            for (let p = 0; p < 4; p++) {
-              this.particles.push(new Particle(hitPoint.x, hitPoint.y, barrier.color, 4, 2, 0.5));
+      handleReflectorCollisions(ball) {
+        for (const ref of this.staticReflectors) {
+          const x1 = ref.x1, y1 = ref.y1, x2 = ref.x2, y2 = ref.y2;
+          const dx = x2 - x1;
+          const dy = y2 - y1;
+          const lenSq = dx * dx + dy * dy;
+          if (lenSq === 0) continue;
+
+          let t = ((ball.x - x1) * dx + (ball.y - y1) * dy) / lenSq;
+          t = Math.max(0, Math.min(1, t));
+          const cx = x1 + t * dx;
+          const cy = y1 + t * dy;
+
+          const dist = Math.hypot(ball.x - cx, ball.y - cy);
+          if (dist < ball.radius + 3) {
+            sound.playBarrierReflect();
+            let nx = -dy;
+            let ny = dx;
+            const nLen = Math.hypot(nx, ny);
+            nx /= nLen;
+            ny /= nLen;
+
+            const dot = ball.vx * nx + ball.vy * ny;
+            if (dot < 0) {
+              ball.vx = ball.vx - 2 * dot * nx;
+              ball.vy = ball.vy - 2 * dot * ny;
+              ball.x = cx + nx * (ball.radius + 4);
+              ball.y = cy + ny * (ball.radius + 4);
+            } else {
+              ball.vx = ball.vx + 2 * dot * nx;
+              ball.vy = ball.vy + 2 * dot * ny;
+              ball.x = cx - nx * (ball.radius + 4);
+              ball.y = cy - ny * (ball.radius + 4);
             }
-            this.updateHUD();
-            return;
+
+            for (let p = 0; p < 5; p++) {
+              this.particles.push(new Particle(cx, cy, '#38bdf8', 4, 2, 0.6));
+            }
           }
         }
+      }
 
-        // 2. Mini Black Holes Gravitational Lens & Quantum Wormhole Jumps
+      handleMovingBouncerCollisions(ball) {
+        for (const core of this.movingBouncers) {
+          const dx = ball.x - core.x;
+          const dy = ball.y - core.y;
+          const dist = Math.hypot(dx, dy);
+          const hitDist = ball.radius + core.radius;
+
+          if (dist < hitDist) {
+            sound.playBumper();
+            core.hitFlash = 1.0;
+            ball.isCharged = true; // チャージ球化（次のブロックに特大ダメージ）
+
+            const nx = dx / (dist || 1);
+            const ny = dy / (dist || 1);
+            const dot = ball.vx * nx + ball.vy * ny;
+
+            const jitter = (Math.random() - 0.5) * 0.3;
+            const spd = Math.hypot(ball.vx, ball.vy) * 1.05;
+            const rx = ball.vx - 2 * dot * nx;
+            const ry = ball.vy - 2 * dot * ny;
+            const baseAng = Math.atan2(ry, rx) + jitter;
+
+            ball.vx = Math.cos(baseAng) * spd;
+            ball.vy = Math.sin(baseAng) * spd;
+            ball.x = core.x + nx * (hitDist + 2);
+            ball.y = core.y + ny * (hitDist + 2);
+
+            this.floatingTexts.push(new FloatText(core.x, core.y - 12, '⚡ CHARGED!', '#fbbf24', 13));
+            for (let p = 0; p < 8; p++) {
+              this.particles.push(new Particle(core.x, core.y, '#fbbf24', 5, 2.5, 0.7));
+            }
+          }
+        }
+      }
+
+      handleBlackHoleGravitation(ball) {
         for (let i = 0; i < this.blackHoles.length; i++) {
           const bh = this.blackHoles[i];
-          const dx = ball.x - bh.x;
-          const dy = ball.y - bh.y;
+          const dx = bh.x - ball.x;
+          const dy = bh.y - ball.y;
           const dist = Math.hypot(dx, dy);
 
-          const gravityRadius = bh.radius * 3.2;
-          if (dist < gravityRadius && dist > 3) {
-            const normDist = Math.max(0.12, dist / gravityRadius);
-            const pullStrength = (1 - normDist) * 1.35;
-            ball.vx -= (dx / dist) * pullStrength;
-            ball.vy -= (dy / dist) * pullStrength;
+          // 重力ベント
+          const gravityR = bh.radius * 3.5;
+          if (dist < gravityR && dist > bh.radius * 0.4) {
+            const pull = 0.55 * (1 - dist / gravityR);
+            ball.vx += (dx / dist) * pull;
+            ball.vy += (dy / dist) * pull;
+          }
 
-            const curSpeed = Math.hypot(ball.vx, ball.vy);
-            const targetSpeed = Math.max(BASE_BALL_SPEED, Math.min(BASE_BALL_SPEED * 1.45, curSpeed));
-            ball.vx = (ball.vx / (curSpeed || 1)) * targetSpeed;
-            ball.vy = (ball.vy / (curSpeed || 1)) * targetSpeed;
+          // 中心吸入 → ワームホール転送
+          if (dist < bh.radius * 0.7) {
+            sound.playWarp();
+            this.warpCount++;
+            this.updateHUD();
 
-            // Wormhole Jump to another black hole + 50% Ball Duplication
-            if (dist < bh.radius * 0.55 && ball.warpCooldown <= 0) {
-              sound.playWormhole();
-              bh.triggerWarp();
+            const others = this.blackHoles.filter((_, idx) => idx !== i);
+            const dest = others[Math.floor(Math.random() * others.length)] || bh;
 
-              this.warpCount++;
-              this.updateHUD();
+            const launchAngle = -Math.PI * 0.2 - Math.random() * Math.PI * 0.6;
+            const spd = BASE_BALL_SPEED * 1.25;
+            ball.vx = Math.cos(launchAngle) * spd;
+            ball.vy = Math.sin(launchAngle) * spd;
+            ball.x = dest.x + Math.cos(launchAngle) * (dest.radius + 5);
+            ball.y = dest.y + Math.sin(launchAngle) * (dest.radius + 5);
 
-              let otherIdx = Math.floor(Math.random() * (this.blackHoles.length - 1));
-              if (otherIdx >= i) otherIdx++;
-              const destBH = this.blackHoles[otherIdx];
-              destBH.triggerWarp();
+            for (let p = 0; p < 10; p++) {
+              this.particles.push(new Particle(dest.x, dest.y, '#c084fc', 5, 2.5, 0.8));
+            }
 
-              const shootAngle = -Math.PI * 0.15 - Math.random() * Math.PI * 0.7;
-              const spd = BASE_BALL_SPEED * 1.35;
-              ball.x = destBH.x + Math.cos(shootAngle) * (destBH.radius * 1.3);
-              ball.y = destBH.y + Math.sin(shootAngle) * (destBH.radius * 1.3);
-              ball.vx = Math.cos(shootAngle) * spd;
-              ball.vy = Math.sin(shootAngle) * spd;
-              ball.warpCooldown = 32;
+            // 50%の確率でクローン球を分裂射出
+            if (Math.random() < 0.50) {
+              this.spawnWarpClone(dest.x, dest.y, ball.vx, ball.vy);
+            }
+            break;
+          }
+        }
+      }
 
-              // 50% chance of duplicate ball
-              const activeCount = this.balls.filter(b => b.active).length;
-              if (Math.random() < 0.50 && activeCount < MAX_ACTIVE_BALLS) {
-                sound.playSplit();
-                const extraAngle = shootAngle + (Math.random() - 0.5) * 0.6;
-                const extraBall = new Ball(
-                  destBH.x + Math.cos(extraAngle) * (destBH.radius * 1.4),
-                  destBH.y + Math.sin(extraAngle) * (destBH.radius * 1.4)
-                );
-                extraBall.launch(Math.cos(extraAngle), Math.sin(extraAngle), spd * 1.05);
-                extraBall.warpCooldown = 36;
-                this.balls.push(extraBall);
+      handleBrickCollisions(ball) {
+        for (let r = 0; r < GRID_ROWS; r++) {
+          for (let c = 0; c < COLS; c++) {
+            const brick = this.grid[r][c];
+            if (!brick) continue;
 
-                this.floatingTexts.push(new FloatText(destBH.x, destBH.y - 14, '🌀 WARP SPLIT! +1', '#f472b6', 13));
-                for (let p = 0; p < 8; p++) {
-                  this.particles.push(new Particle(destBH.x, destBH.y, '#f472b6', 6, 2.5, 0.8));
+            const pad = 2.0;
+            const bx = c * this.cellW + pad;
+            const by = r * this.cellH + pad;
+            const bw = this.cellW - pad * 2;
+            const bh = this.cellH - pad * 2;
+
+            const closestX = Math.max(bx, Math.min(ball.x, bx + bw));
+            const closestY = Math.max(by, Math.min(ball.y, by + bh));
+
+            const distX = ball.x - closestX;
+            const distY = ball.y - closestY;
+            const distSq = distX * distX + distY * distY;
+
+            if (distSq < ball.radius * ball.radius) {
+              const damage = ball.isCharged ? 2 : 1;
+              if (ball.isCharged) {
+                ball.isCharged = false;
+                this.floatingTexts.push(new FloatText(closestX, closestY, 'CRITICAL x2!', '#fbbf24', 14));
+              }
+
+              const destroyed = brick.takeDamage(damage);
+              this.baseScore += 25 * damage;
+              sound.playPop(1.0 + (this.stage % 5) * 0.1);
+
+              // ✦ MULTI（100%確定分裂）
+              if (brick.type === BrickType.MULTI) {
+                if (this.balls.length < MAX_BALLS_ON_SCREEN) {
+                  const bExtra = new Ball(ball.x, ball.y);
+                  const a = Math.atan2(ball.vy, ball.vx) + (Math.random() - 0.5) * 0.8;
+                  bExtra.launch(Math.cos(a), Math.sin(a));
+                  this.balls.push(bExtra);
+                  this.floatingTexts.push(new FloatText(closestX, closestY, '✦ SPLIT! +1', '#22d3ee', 13));
+                  sound.playPowerup();
                 }
-              } else {
-                this.floatingTexts.push(new FloatText(destBH.x, destBH.y, '🌀 WORMHOLE!', '#e879f9', 13));
+              } else if (brick.type === BrickType.SOFT) {
+                if (Math.random() < 0.18 && this.balls.length < MAX_BALLS_ON_SCREEN) {
+                  const bExtra = new Ball(ball.x, ball.y);
+                  const a = Math.atan2(ball.vy, ball.vx) + (Math.random() - 0.5) * 0.8;
+                  bExtra.launch(Math.cos(a), Math.sin(a));
+                  this.balls.push(bExtra);
+                }
               }
 
-              for (let p = 0; p < 10; p++) {
-                this.particles.push(new Particle(destBH.x, destBH.y, '#c084fc', 5, 2.5, 0.7));
+              if (destroyed) {
+                if (brick.type === BrickType.ENERGY) {
+                  this.shotsLeft++;
+                  this.floatingTexts.push(new FloatText(bx + bw / 2, by + bh / 2, '⚡ +1 SHOT!', '#eab308', 15));
+                  sound.playPowerup();
+                } else if (brick.type === BrickType.BOMB) {
+                  this.explodeBombAt(c, r);
+                }
+
+                this.grid[r][c] = null;
+                for (let p = 0; p < 12; p++) {
+                  this.particles.push(new Particle(bx + bw / 2, by + bh / 2, '#38bdf8', 5, 2.5, 0.8));
+                }
               }
+
               this.updateHUD();
+
+              // 反射処理
+              const overlapX = ball.radius - Math.abs(distX);
+              const overlapY = ball.radius - Math.abs(distY);
+
+              if (distSq === 0) {
+                ball.vy = -Math.abs(ball.vy);
+              } else if (overlapX < overlapY) {
+                ball.vx = distX > 0 ? Math.abs(ball.vx) : -Math.abs(ball.vx);
+                ball.x = closestX + (distX > 0 ? ball.radius : -ball.radius);
+              } else {
+                ball.vy = distY > 0 ? Math.abs(ball.vy) : -Math.abs(ball.vy);
+                ball.y = closestY + (distY > 0 ? ball.radius : -ball.radius);
+              }
               return;
             }
           }
         }
+      }
 
-        // 3. Destructible Bricks
-        for (let i = this.bricks.length - 1; i >= 0; i--) {
-          const brick = this.bricks[i];
-          const pad = 2.5;
-          const bx = brick.col * this.cellW + pad;
-          const by = this.gridTopOffset + brick.row * this.cellH + pad;
-          const bw = this.cellW - pad * 2;
-          const bh = this.cellH - pad * 2;
+      finishTurn() {
+        this.state = 'AIMING';
+        this.launchX = this.firstLandedX !== null ? Math.max(16, Math.min(this.bounds.w - 16, this.firstLandedX)) : this.bounds.w / 2;
+        this.firstLandedX = null;
+        this.balls = [];
 
-          const closestX = Math.max(bx, Math.min(ball.x, bx + bw));
-          const closestY = Math.max(by, Math.min(ball.y, by + bh));
-
-          const distX = ball.x - closestX;
-          const distY = ball.y - closestY;
-          const distSq = distX * distX + distY * distY;
-
-          if (distSq < ball.radius * ball.radius) {
-            const dead = brick.takeDamage(1);
-            this.baseScore += 15;
-            sound.playPop(1.0 + (brick.row % 5) * 0.1);
-
-            if (brick.type === BrickType.MULTIPLIER) {
-              this.spawnSplitBallAt(closestX, closestY);
-              this.floatingTexts.push(new FloatText(closestX, closestY - 8, '✦ MULTIPLY!', '#00f0ff', 13));
-            } else if (brick.type === BrickType.HARD) {
-              for (let p = 0; p < 3; p++) {
-                this.particles.push(new Particle(closestX, closestY, '#cbd5e1', 3, 1.5, 0.5));
-              }
-            } else {
-              if (Math.random() < 0.18) {
-                this.spawnSplitBallAt(closestX, closestY);
-                this.floatingTexts.push(new FloatText(closestX, closestY - 8, '+1 BALL', '#38bdf8', 12));
-              }
-            }
-
-            for (let p = 0; p < 4; p++) {
-              this.particles.push(new Particle(closestX, closestY, '#22d3ee', 4, 2, 0.6));
-            }
-
-            if (dead) {
-              this.bricks.splice(i, 1);
-              for (let p = 0; p < 12; p++) {
-                this.particles.push(new Particle(bx + bw / 2, by + bh / 2, '#f43f5e', 5, 3, 0.8));
-              }
-
-              if (brick.type === BrickType.ENERGY) {
-                sound.playEnergy();
-                this.shotsRemaining++;
-                this.floatingTexts.push(new FloatText(bx + bw / 2, by + bh / 2, '⚡ +1 SHOT!', '#facc15', 15));
-              } else if (brick.type === BrickType.BOMB) {
-                this.triggerBombExplosion(brick.col, brick.row);
-              }
-
-              this.updateHUD();
-              this.checkStageClear();
-            }
-
-            const overlapX = ball.radius - Math.abs(distX);
-            const overlapY = ball.radius - Math.abs(distY);
-
-            if (distSq === 0) {
-              ball.vy = -Math.abs(ball.vy);
-            } else if (overlapX < overlapY) {
-              ball.vx = distX > 0 ? Math.abs(ball.vx) : -Math.abs(ball.vx);
-              ball.x = closestX + (distX > 0 ? ball.radius : -ball.radius);
-            } else {
-              ball.vy = distY > 0 ? Math.abs(ball.vy) : -Math.abs(ball.vy);
-              ball.y = closestY + (distY > 0 ? ball.radius : -ball.radius);
-            }
-            return;
+        let remainingBlocks = 0;
+        for (let r = 0; r < GRID_ROWS; r++) {
+          for (let c = 0; c < COLS; c++) {
+            if (this.grid[r][c]) remainingBlocks++;
           }
         }
+
+        this.updateHUD();
+
+        if (remainingBlocks === 0) {
+          this.triggerStageClear();
+        } else if (this.shotsLeft <= 0) {
+          this.triggerGameOver();
+        }
+      }
+
+      triggerStageClear() {
+        this.state = 'CLEAR';
+        sound.playVictory();
+
+        for (let i = 0; i < 30; i++) {
+          this.particles.push(new Particle(this.bounds.w / 2, this.bounds.h * 0.4, '#00f0ff', 7, 3.5, 1.4));
+          this.particles.push(new Particle(this.bounds.w / 2, this.bounds.h * 0.4, '#eab308', 7, 3.5, 1.4));
+        }
+
+        if (this.stage >= TOTAL_STAGES) {
+          const rating = this.calculateRating();
+          this.finalRankText.textContent = this.getRank(rating);
+          this.allClearRating.textContent = rating.toLocaleString();
+          this.allClearWarps.textContent = this.warpCount;
+          this.allClearContinues.textContent = this.continuesUsed;
+          this.allClearBest.textContent = this.bestRating.toLocaleString();
+
+          if (this.continuesUsed === 0) {
+            this.allClearBonusBadge.classList.remove('hidden');
+          } else {
+            this.allClearBonusBadge.classList.add('hidden');
+          }
+          this.allClearModal.classList.remove('hidden');
+        } else {
+          this.completedStageText.textContent = `STAGE ${this.stage}`;
+          this.stageWarpText.textContent = this.warpCount;
+          this.stageShotsLeftText.textContent = `+${this.shotsLeft}`;
+          this.stageContinuesText.textContent = this.continuesUsed === 0 ? '👑 0 (NO CONTINUE!)' : this.continuesUsed;
+          this.stageRatingText.textContent = this.calculateRating().toLocaleString();
+          this.stageCompleteModal.classList.remove('hidden');
+        }
+      }
+
+      triggerGameOver() {
+        this.state = 'GAMEOVER';
+        this.finalStageEl.textContent = `STAGE ${this.stage}`;
+        this.finalWarpsEl.textContent = this.warpCount;
+        this.finalScoreEl.textContent = this.calculateRating().toLocaleString();
+        this.finalContinuesEl.textContent = this.continuesUsed;
+        this.gameOverModal.classList.remove('hidden');
       }
 
       drawAimLine() {
@@ -1670,22 +1588,22 @@
         this.ctx.save();
         for (let bounce = 0; bounce < 2; bounce++) {
           let stepDist = 8;
-          let maxSteps = 42;
+          let maxSteps = 40;
           for (let i = 0; i < maxSteps; i++) {
             curX += vx * stepDist;
             curY += vy * stepDist;
 
-            if (curX <= 5) {
-              curX = 5;
+            if (curX <= 6) {
+              curX = 6;
               vx = Math.abs(vx);
               break;
-            } else if (curX >= this.bounds.w - 5) {
-              curX = this.bounds.w - 5;
+            } else if (curX >= this.bounds.w - 6) {
+              curX = this.bounds.w - 6;
               vx = -Math.abs(vx);
               break;
             }
-            if (curY <= 5) {
-              curY = 5;
+            if (curY <= 6) {
+              curY = 6;
               vy = Math.abs(vy);
               break;
             }
@@ -1702,9 +1620,9 @@
       render() {
         this.ctx.clearRect(0, 0, this.bounds.w, this.bounds.h);
 
-        // Floor Launch Line
+        // 発射ベースライン
         this.ctx.save();
-        this.ctx.strokeStyle = 'rgba(148, 163, 184, 0.25)';
+        this.ctx.strokeStyle = 'rgba(148, 163, 184, 0.2)';
         this.ctx.lineWidth = 1;
         this.ctx.beginPath();
         this.ctx.moveTo(0, this.launchY);
@@ -1712,42 +1630,51 @@
         this.ctx.stroke();
         this.ctx.restore();
 
-        // 1. Static Bricks
-        for (const b of this.bricks) {
-          b.draw(this.ctx, this.cellW, this.cellH, this.gridTopOffset);
+        // ブロック群
+        for (let r = 0; r < GRID_ROWS; r++) {
+          for (let c = 0; c < COLS; c++) {
+            if (this.grid[r][c]) {
+              this.grid[r][c].draw(this.ctx, this.cellW, this.cellH, 0, 0);
+            }
+          }
         }
 
-        // 2. Reflective Barriers (Stage 5+)
-        for (const barrier of this.barriers) {
-          barrier.draw(this.ctx);
+        // 前半面の固定反射板
+        for (const ref of this.staticReflectors) {
+          ref.draw(this.ctx);
         }
 
-        // 3. Mini Black Holes
+        // 後半面の移動反射コア
+        for (const bouncer of this.movingBouncers) {
+          bouncer.draw(this.ctx);
+        }
+
+        // 小型ブラックホール（5基）
         for (const bh of this.blackHoles) {
           bh.draw(this.ctx);
         }
 
-        // 4. Aim Trajectory Line
+        // 照準ガイド線
         this.drawAimLine();
 
-        // 5. Balls
+        // 飛行中ボール
         for (const ball of this.balls) {
           ball.draw(this.ctx);
         }
 
-        // 6. Launch Ball Anchor
+        // 発射台アンカー
         if (this.state === 'AIMING') {
           this.ctx.save();
           this.ctx.shadowBlur = 12;
           this.ctx.shadowColor = '#22d3ee';
           this.ctx.fillStyle = '#06b6d4';
           this.ctx.beginPath();
-          this.ctx.arc(this.launchX, this.launchY, Math.max(1, BALL_RADIUS * 1.3), 0, Math.PI * 2);
+          this.ctx.arc(this.launchX, this.launchY, BALL_RADIUS * 1.25, 0, Math.PI * 2);
           this.ctx.fill();
           this.ctx.restore();
         }
 
-        // 7. Particles
+        // パーティクル
         for (let i = this.particles.length - 1; i >= 0; i--) {
           const p = this.particles[i];
           if (!p.update()) {
@@ -1757,7 +1684,7 @@
           }
         }
 
-        // 8. Floating texts
+        // フロートテキスト
         for (let i = this.floatingTexts.length - 1; i >= 0; i--) {
           const ft = this.floatingTexts[i];
           if (!ft.update()) {
@@ -1769,7 +1696,7 @@
       }
 
       loop() {
-        if (this.state !== 'GAMEOVER' && this.state !== 'STAGECLEAR') {
+        if (this.state !== 'GAMEOVER') {
           this.physicsStep();
         }
         this.render();
