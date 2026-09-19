@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>Neon Bounce Breaker - Multi & Continue Edition</title>
+  <title>Neon Bounce Breaker - High-Score Master Edition</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -26,7 +26,7 @@
       color: #f8fafc;
       overflow: hidden;
       overscroll-behavior: none;
-      padding-top: max(8px, var(--sat));
+      padding-top: max(6px, var(--sat));
       padding-bottom: max(6px, var(--sab));
     }
     .font-orbitron {
@@ -60,31 +60,32 @@
   </style>
 </head>
 <body class="h-[100dvh] w-screen flex flex-col items-center justify-between px-2 select-none">
+  <!-- Top Header with Detailed Stats & All-time Best -->
   <header class="w-full max-w-md flex flex-col gap-1 z-10 shrink-0">
-    <div class="flex items-center justify-between bg-slate-900/90 border border-slate-800/90 px-2.5 py-1.5 rounded-xl backdrop-blur shadow-md">
+    <div class="flex items-center justify-between bg-slate-900/90 border border-slate-800/90 px-2 py-1.5 rounded-xl backdrop-blur shadow-md">
       <div class="flex flex-col">
         <span class="text-[8px] text-slate-400 font-orbitron tracking-wider">STAGE</span>
         <span id="stageText" class="text-base font-black font-orbitron text-cyan-400 neon-text-cyan leading-none">1/10</span>
       </div>
 
       <div class="flex flex-col items-center">
-        <span class="text-[8px] text-purple-300 font-orbitron tracking-wider flex items-center gap-0.5"><span>🌀</span>WARPS</span>
-        <span id="warpsText" class="text-lg font-black font-orbitron text-purple-300 neon-text-purple leading-none">0</span>
+        <span class="text-[8px] text-purple-300 font-orbitron tracking-wider flex items-center gap-0.5"><span>🌀</span>WARP</span>
+        <span id="warpsText" class="text-base font-black font-orbitron text-purple-300 neon-text-purple leading-none">0</span>
       </div>
 
       <div class="flex flex-col items-center">
         <span class="text-[8px] text-slate-400 font-orbitron tracking-wider">SHOTS</span>
-        <span id="shotsText" class="text-lg font-black font-orbitron text-emerald-400 neon-text-green leading-none">6</span>
+        <span id="shotsText" class="text-base font-black font-orbitron text-emerald-400 neon-text-green leading-none">6</span>
       </div>
 
       <div class="flex flex-col items-center">
-        <span class="text-[8px] text-slate-400 font-orbitron tracking-wider">BLOCKS</span>
-        <span id="blocksText" class="text-lg font-black font-orbitron text-pink-400 neon-text-magenta leading-none">0</span>
+        <span class="text-[8px] text-slate-400 font-orbitron tracking-wider">SCORE</span>
+        <span id="scoreText" class="text-base font-black font-orbitron text-amber-300 neon-text-yellow leading-none">0</span>
       </div>
 
       <div class="flex flex-col items-end">
-        <span class="text-[8px] text-slate-400 font-orbitron tracking-wider">SCORE</span>
-        <span id="scoreText" class="text-base font-black font-orbitron text-amber-300 neon-text-yellow leading-none">0</span>
+        <span class="text-[8px] text-pink-400 font-orbitron tracking-wider">BEST</span>
+        <span id="bestScoreText" class="text-base font-black font-orbitron text-pink-400 leading-none">0</span>
       </div>
 
       <div class="flex items-center gap-1 ml-1 border-l border-slate-800 pl-1.5">
@@ -94,7 +95,8 @@
     </div>
   </header>
 
-  <main class="relative w-full max-w-md flex-1 my-1.5 rounded-2xl overflow-hidden border border-slate-800/80 bg-slate-950 shadow-2xl flex flex-col justify-center">
+  <!-- Main Game Canvas Container -->
+  <main class="relative w-full max-w-md flex-1 my-1 rounded-2xl overflow-hidden border border-slate-800/80 bg-slate-950 shadow-2xl flex flex-col justify-center">
     <canvas id="gameCanvas" class="w-full h-full"></canvas>
 
     <!-- Fast-Forward Status Overlay -->
@@ -102,86 +104,106 @@
       ⚡ HYPER SPEED
     </div>
 
-    <!-- Stage Complete Modal -->
-    <div id="stageCompleteModal" class="hidden absolute inset-0 bg-black/85 backdrop-blur-md flex flex-col items-center justify-center p-6 z-30">
-      <div class="text-4xl mb-2">🎉</div>
+    <!-- Stage Complete Modal with Comprehensive Scoring Breakdown -->
+    <div id="stageCompleteModal" class="hidden absolute inset-0 bg-black/90 backdrop-blur-md flex flex-col items-center justify-center p-5 z-30 overflow-y-auto">
+      <div class="text-4xl mb-1">🎉</div>
       <h2 id="stageCompleteTitle" class="text-2xl font-black font-orbitron text-cyan-400 neon-text-cyan mb-1">STAGE COMPLETE!</h2>
-      <p id="stageCompleteSubtitle" class="text-xs text-slate-300 mb-6 font-mono">全てのブロックの破壊に成功しました！</p>
+      <p id="stageCompleteSubtitle" class="text-[11px] text-slate-300 mb-4 font-mono text-center">全てのブロックの破壊に成功しました！</p>
       
-      <div class="bg-slate-900/95 border border-slate-800 rounded-2xl p-4 w-full max-w-xs mb-6 text-center space-y-2.5">
-        <div class="flex justify-between items-center text-sm font-orbitron">
-          <span class="text-slate-400 text-xs">STAGE CLEARED</span>
-          <span id="clearedStageNum" class="text-cyan-400 font-bold text-lg">1</span>
+      <div class="bg-slate-900/95 border border-slate-800 rounded-2xl p-3.5 w-full max-w-xs mb-4 text-center space-y-2">
+        <div class="flex justify-between items-center text-xs font-orbitron">
+          <span class="text-slate-400">STAGE</span>
+          <span id="clearedStageNum" class="text-cyan-400 font-bold text-sm">1 / 10</span>
         </div>
-        <div class="flex justify-between items-center text-sm font-orbitron">
-          <span class="text-purple-400 text-xs">TOTAL WARPS</span>
-          <span id="clearedWarps" class="text-purple-300 font-bold text-lg neon-text-purple">0</span>
+        <div class="flex justify-between items-center text-xs font-orbitron">
+          <span class="text-slate-400">BASE SCORE</span>
+          <span id="clearedBaseScore" class="text-amber-400 font-bold text-sm">0</span>
         </div>
-        <div class="flex justify-between items-center text-sm font-orbitron">
-          <span class="text-slate-400 text-xs">STAGE BONUS</span>
-          <span id="clearedStageBonus" class="text-emerald-400 font-bold text-lg">+1,000</span>
+        <div class="flex justify-between items-center text-xs font-orbitron">
+          <span class="text-purple-400">WARP BONUS (x150)</span>
+          <span id="clearedWarpBonus" class="text-purple-300 font-bold text-sm">+0</span>
         </div>
-        <div class="flex justify-between items-center text-sm font-orbitron">
-          <span class="text-slate-400 text-xs">TOTAL SCORE</span>
-          <span id="clearedTotalScore" class="text-amber-400 font-bold text-lg">0</span>
+        <div class="flex justify-between items-center text-xs font-orbitron">
+          <span class="text-emerald-400">SHOT SAVED (x500)</span>
+          <span id="clearedShotBonus" class="text-emerald-400 font-bold text-sm">+0</span>
         </div>
-        <div class="flex justify-between items-center text-sm font-orbitron border-t border-slate-800/80 pt-2">
-          <span class="text-slate-400 text-xs">CONTINUES USED</span>
-          <span id="clearedContinuesUsed" class="text-emerald-400 font-bold text-sm">👑 0 (NO CONTINUE!)</span>
+        <div class="flex justify-between items-center text-xs font-orbitron">
+          <span class="text-rose-400">CONT. PENALTY (-2500)</span>
+          <span id="clearedContPenalty" class="text-rose-400 font-bold text-sm">-0</span>
+        </div>
+        <div class="border-t border-slate-800 pt-2 flex justify-between items-center">
+          <span class="text-xs font-orbitron text-slate-300">TOTAL RATING</span>
+          <div class="flex items-center gap-1.5">
+            <span id="clearedRankTag" class="px-1.5 py-0.5 rounded bg-cyan-950 border border-cyan-400 text-cyan-300 font-orbitron font-black text-xs">S</span>
+            <span id="clearedTotalScore" class="text-lg font-black font-orbitron text-amber-300 neon-text-yellow">0</span>
+          </div>
+        </div>
+        <div class="text-[10px] text-slate-400 font-mono text-left pt-1">
+          <span>ALL-TIME BEST: </span>
+          <span id="clearedAllTimeBest" class="text-pink-400 font-bold font-orbitron">0</span>
         </div>
       </div>
       
-      <button id="nextStageBtn" class="w-full max-w-xs py-3.5 px-6 rounded-xl bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 text-slate-950 font-orbitron font-black tracking-wider text-base shadow-lg glow-cyan active:scale-95 transition-all">
+      <button id="nextStageBtn" class="w-full max-w-xs py-3 px-6 rounded-xl bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 text-slate-950 font-orbitron font-black tracking-wider text-sm shadow-lg glow-cyan active:scale-95 transition-all">
         NEXT STAGE ▶
       </button>
     </div>
 
-    <!-- Game Over Modal with CONTINUE support -->
-    <div id="gameOverModal" class="hidden absolute inset-0 bg-black/90 backdrop-blur-md flex flex-col items-center justify-center p-6 z-30">
-      <div class="text-4xl mb-2">💥</div>
-      <h2 class="text-3xl font-black font-orbitron text-pink-500 neon-text-magenta mb-1">OUT OF SHOTS</h2>
-      <p class="text-xs text-slate-400 mb-5 font-mono">残弾が尽きました。現在の盤面から復活できます！</p>
+    <!-- Game Over Modal with Detailed Formula Score & CONTINUE (-10 WARPS) -->
+    <div id="gameOverModal" class="hidden absolute inset-0 bg-black/90 backdrop-blur-md flex flex-col items-center justify-center p-5 z-30 overflow-y-auto">
+      <div class="text-4xl mb-1">💥</div>
+      <h2 class="text-2xl font-black font-orbitron text-pink-500 neon-text-magenta mb-1">OUT OF SHOTS</h2>
+      <p class="text-[11px] text-slate-400 mb-3 font-mono text-center">残弾が尽きました。ワープ10回分を消費して復活可能！</p>
       
-      <div class="bg-slate-900/95 border border-slate-800 rounded-2xl p-3.5 w-full max-w-xs mb-5 text-center space-y-2">
+      <div class="bg-slate-900/95 border border-slate-800 rounded-2xl p-3 w-full max-w-xs mb-3 text-center space-y-1.5">
         <div class="flex justify-between items-center text-xs font-orbitron">
-          <span class="text-slate-400">CURRENT STAGE</span>
+          <span class="text-slate-400">FINAL STAGE</span>
           <span id="finalStage" class="text-cyan-400 font-bold text-sm">STAGE 1</span>
         </div>
         <div class="flex justify-between items-center text-xs font-orbitron">
-          <span class="text-purple-400">TOTAL WARPS</span>
-          <span id="finalWarps" class="text-purple-300 font-bold text-sm">0 回</span>
-        </div>
-        <div class="flex justify-between items-center text-xs font-orbitron">
-          <span class="text-slate-400">REMAINING BLOCKS</span>
+          <span class="text-slate-400">BLOCKS REMAIN</span>
           <span id="finalRemainingBlocks" class="text-pink-400 font-bold text-sm">5</span>
         </div>
         <div class="flex justify-between items-center text-xs font-orbitron">
-          <span class="text-slate-400">SCORE</span>
-          <span id="finalScore" class="text-amber-400 font-bold text-sm">0</span>
+          <span class="text-purple-400">WARPS (x150)</span>
+          <span id="finalWarps" class="text-purple-300 font-bold text-sm">0 (+0)</span>
         </div>
-        <div class="flex justify-between items-center text-xs font-orbitron border-t border-slate-800/80 pt-1.5">
-          <span class="text-slate-400">CONTINUES SO FAR</span>
-          <span id="finalContinuesCount" class="text-cyan-300 font-bold text-sm">0 回</span>
+        <div class="flex justify-between items-center text-xs font-orbitron">
+          <span class="text-rose-400">CONT. USED (-2500)</span>
+          <span id="finalContinuesCount" class="text-rose-400 font-bold text-sm">0 (-0)</span>
+        </div>
+        <div class="border-t border-slate-800 pt-1.5 flex justify-between items-center">
+          <span class="text-xs font-orbitron text-slate-300">CALCULATED SCORE</span>
+          <div class="flex items-center gap-1.5">
+            <span id="finalRankTag" class="px-1.5 py-0.5 rounded bg-pink-950 border border-pink-400 text-pink-300 font-orbitron font-black text-xs">B</span>
+            <span id="finalScore" class="text-base font-black font-orbitron text-amber-300 neon-text-yellow">0</span>
+          </div>
+        </div>
+        <div class="text-[10px] text-slate-400 font-mono text-left">
+          <span>ALL-TIME BEST: </span>
+          <span id="finalAllTimeBest" class="text-pink-400 font-bold font-orbitron">0</span>
         </div>
       </div>
       
-      <div class="w-full max-w-xs flex flex-col gap-2.5">
-        <button id="continueBtn" class="w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-emerald-400 to-cyan-500 hover:from-emerald-300 hover:to-cyan-400 text-slate-950 font-orbitron font-black tracking-wider text-base shadow-lg glow-emerald active:scale-95 transition-all flex items-center justify-center gap-2">
+      <div class="w-full max-w-xs flex flex-col gap-2">
+        <button id="continueBtn" class="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-emerald-400 to-cyan-500 hover:from-emerald-300 hover:to-cyan-400 text-slate-950 font-orbitron font-black tracking-wide text-xs shadow-lg glow-emerald active:scale-95 transition-all flex flex-col items-center justify-center leading-tight">
           <span>⚡ CONTINUE (+3 SHOTS)</span>
+          <span class="text-[10px] font-mono text-slate-900 font-normal">COST: 🌀 10 WARPS CONSUMED</span>
         </button>
-        <button id="retryBtn" class="w-full py-2.5 px-6 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-slate-300 font-orbitron font-bold text-xs border border-slate-700 active:scale-95 transition-all">
+        <button id="retryBtn" class="w-full py-2 px-4 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-slate-300 font-orbitron font-bold text-xs border border-slate-700 active:scale-95 transition-all">
           RESTART FROM STAGE 1 🔄
         </button>
       </div>
     </div>
   </main>
 
+  <!-- Formula info bar and Continue stats -->
   <div class="w-full max-w-md flex items-center justify-between py-1 px-2 text-[10px] text-slate-400 font-mono bg-slate-900/60 rounded-lg border border-slate-800/60">
     <div class="flex items-center gap-2">
       <span class="text-cyan-300 font-bold">✦×2: 分裂100%</span>
       <span class="text-fuchsia-400 font-bold">🌀: 50%分裂</span>
       <span class="text-amber-300">⚡: +1弾</span>
-      <span class="text-rose-400">💣: 爆発</span>
+      <span class="text-rose-400">🛡️: 反射壁(後編)</span>
     </div>
     <div class="flex items-center gap-1.5">
       <span class="text-slate-500">CONT:</span>
@@ -197,7 +219,7 @@
     </div>
 
     <div class="flex items-center gap-2">
-      <span class="text-[10px] text-slate-400 font-mono hidden sm:inline">長押しで超早送り⚡</span>
+      <span class="text-[10px] text-slate-400 font-mono hidden sm:inline">長押し: 超早送り⚡</span>
       <button id="resetGameBtn" class="p-1.5 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-slate-400 hover:text-slate-200 border border-slate-700 text-xs active:scale-95 transition-transform" title="リセット">
         🔄
       </button>
@@ -286,6 +308,22 @@
         gain.connect(this.ctx.destination);
         osc.start();
         osc.stop(this.ctx.currentTime + 0.18);
+      }
+      playBarrierReflect() {
+        if (!this.enabled) return;
+        this.init();
+        if (!this.ctx) return;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(750, this.ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(1600, this.ctx.currentTime + 0.07);
+        gain.gain.setValueAtTime(0.18, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.07);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start();
+        osc.stop(this.ctx.currentTime + 0.07);
       }
       playExplosion() {
         if (!this.enabled) return;
@@ -412,6 +450,97 @@
         ctx.shadowColor = this.color;
         ctx.fillText(this.text, this.x, this.y);
         ctx.restore();
+      }
+    }
+
+    class ReflectiveBarrier {
+      constructor(x1, y1, x2, y2, thickness = 7, color = '#f43f5e') {
+        this.x1 = x1;
+        this.y1 = y1;
+        this.x2 = x2;
+        this.y2 = y2;
+        this.thickness = thickness;
+        this.color = color;
+        this.hitGlow = 0;
+        this.pulse = Math.random() * Math.PI;
+
+        const dx = x2 - x1;
+        const dy = y2 - y1;
+        this.length = Math.hypot(dx, dy);
+        this.nx = -dy / (this.length || 1);
+        this.ny = dx / (this.length || 1);
+      }
+
+      draw(ctx) {
+        this.pulse += 0.04;
+        ctx.save();
+        const alpha = 0.75 + Math.sin(this.pulse) * 0.2;
+        ctx.strokeStyle = this.hitGlow > 0 ? '#ffffff' : this.color;
+        ctx.lineWidth = this.thickness + (this.hitGlow > 0 ? 3 : 0);
+        ctx.lineCap = 'round';
+        ctx.shadowBlur = 12 + this.hitGlow * 14;
+        ctx.shadowColor = this.color;
+        ctx.globalAlpha = alpha;
+
+        ctx.beginPath();
+        ctx.moveTo(this.x1, this.y1);
+        ctx.lineTo(this.x2, this.y2);
+        ctx.stroke();
+
+        // Inner glowing core
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 2.2;
+        ctx.beginPath();
+        ctx.moveTo(this.x1, this.y1);
+        ctx.lineTo(this.x2, this.y2);
+        ctx.stroke();
+
+        if (this.hitGlow > 0) {
+          this.hitGlow -= 0.08;
+        }
+        ctx.restore();
+      }
+
+      // High-precision segment collision check with reflection restitution
+      checkCollision(ball) {
+        const dx = this.x2 - this.x1;
+        const dy = this.y2 - this.y1;
+        const lenSq = dx * dx + dy * dy;
+        if (lenSq === 0) return false;
+
+        let t = ((ball.x - this.x1) * dx + (ball.y - this.y1) * dy) / lenSq;
+        t = Math.max(0, Math.min(1, t));
+
+        const nearestX = this.x1 + t * dx;
+        const nearestY = this.y1 + t * dy;
+
+        const distVecX = ball.x - nearestX;
+        const distVecY = ball.y - nearestY;
+        const dist = Math.hypot(distVecX, distVecY);
+
+        const hitDist = ball.radius + this.thickness * 0.5 + 1.5;
+        if (dist < hitDist) {
+          this.hitGlow = 1.0;
+          sound.playBarrierReflect();
+
+          const nx = dist > 0.001 ? distVecX / dist : this.nx;
+          const ny = dist > 0.001 ? distVecY / dist : this.ny;
+
+          // Elastic specular reflection: v' = v - 2(v·n)n
+          const dot = ball.vx * nx + ball.vy * ny;
+          if (dot < 0) {
+            const restitution = 1.06;
+            ball.vx = (ball.vx - 2 * dot * nx) * restitution;
+            ball.vy = (ball.vy - 2 * dot * ny) * restitution;
+          }
+
+          // Push ball outside wall boundary
+          ball.x = nearestX + nx * (hitDist + 1.2);
+          ball.y = nearestY + ny * (hitDist + 1.2);
+
+          return { x: nearestX, y: nearestY };
+        }
+        return false;
       }
     }
 
@@ -664,14 +793,18 @@
         this.cellH = 28;
 
         this.stage = 1;
-        this.score = 0;
+        this.baseScore = 0;
         this.warpCount = 0;
         this.shotsRemaining = 6;
         this.continueCount = 0;
+        this.savedShotsTotal = 0;
+
+        this.bestScore = parseInt(localStorage.getItem('neon_breaker_high_score') || '0', 10);
 
         this.balls = [];
         this.bricks = [];
         this.blackHoles = [];
+        this.barriers = [];
         this.particles = [];
         this.floatingTexts = [];
 
@@ -716,6 +849,7 @@
               this.launchX = this.bounds.w / 2;
             }
           }
+          this.buildBarriersForStage(this.stage);
         };
         window.addEventListener('resize', resize);
         resize();
@@ -725,8 +859,8 @@
         this.stageEl = document.getElementById('stageText');
         this.warpsEl = document.getElementById('warpsText');
         this.shotsEl = document.getElementById('shotsText');
-        this.blocksEl = document.getElementById('blocksText');
         this.scoreEl = document.getElementById('scoreText');
+        this.bestScoreEl = document.getElementById('bestScoreText');
         this.ballsEl = document.getElementById('ballsCountText');
         this.speedBtn = document.getElementById('speedBtn');
         this.muteBtn = document.getElementById('muteBtn');
@@ -737,21 +871,28 @@
         this.stageCompleteTitle = document.getElementById('stageCompleteTitle');
         this.stageCompleteSubtitle = document.getElementById('stageCompleteSubtitle');
         this.clearedStageNum = document.getElementById('clearedStageNum');
-        this.clearedWarps = document.getElementById('clearedWarps');
-        this.clearedStageBonus = document.getElementById('clearedStageBonus');
+        this.clearedBaseScore = document.getElementById('clearedBaseScore');
+        this.clearedWarpBonus = document.getElementById('clearedWarpBonus');
+        this.clearedShotBonus = document.getElementById('clearedShotBonus');
+        this.clearedContPenalty = document.getElementById('clearedContPenalty');
+        this.clearedRankTag = document.getElementById('clearedRankTag');
         this.clearedTotalScore = document.getElementById('clearedTotalScore');
-        this.clearedContinuesUsed = document.getElementById('clearedContinuesUsed');
+        this.clearedAllTimeBest = document.getElementById('clearedAllTimeBest');
         this.nextStageBtn = document.getElementById('nextStageBtn');
 
         this.gameOverModal = document.getElementById('gameOverModal');
         this.finalStageEl = document.getElementById('finalStage');
-        this.finalWarpsEl = document.getElementById('finalWarps');
         this.finalRemainingBlocksEl = document.getElementById('finalRemainingBlocks');
-        this.finalScoreEl = document.getElementById('finalScore');
+        this.finalWarpsEl = document.getElementById('finalWarps');
         this.finalContinuesCountEl = document.getElementById('finalContinuesCount');
+        this.finalRankTag = document.getElementById('finalRankTag');
+        this.finalScoreEl = document.getElementById('finalScore');
+        this.finalAllTimeBest = document.getElementById('finalAllTimeBest');
         this.continueBtn = document.getElementById('continueBtn');
         this.retryBtn = document.getElementById('retryBtn');
         this.resetGameBtn = document.getElementById('resetGameBtn');
+
+        this.bestScoreEl.textContent = this.bestScore.toLocaleString();
 
         this.speedBtn.addEventListener('click', () => {
           const speeds = [1, 2, 4, 8];
@@ -769,25 +910,29 @@
           this.stageCompleteModal.classList.add('hidden');
           if (this.stage >= TOTAL_STAGES) {
             this.continueCount = 0;
-            this.score = 0;
+            this.baseScore = 0;
             this.warpCount = 0;
+            this.savedShotsTotal = 0;
             this.startStage(1);
           } else {
             this.startStage(this.stage + 1);
           }
         });
 
+        // Continue penalty: Consumes 10 Warps and adds continue penalty
         this.continueBtn.addEventListener('click', () => {
           this.gameOverModal.classList.add('hidden');
           this.continueCount++;
+          this.warpCount = Math.max(0, this.warpCount - 10);
           this.resumeStageWithContinue();
         });
 
         this.retryBtn.addEventListener('click', () => {
           this.gameOverModal.classList.add('hidden');
           this.continueCount = 0;
-          this.score = 0;
+          this.baseScore = 0;
           this.warpCount = 0;
+          this.savedShotsTotal = 0;
           this.startStage(1);
         });
 
@@ -795,8 +940,9 @@
           this.stageCompleteModal.classList.add('hidden');
           this.gameOverModal.classList.add('hidden');
           this.continueCount = 0;
-          this.score = 0;
+          this.baseScore = 0;
           this.warpCount = 0;
+          this.savedShotsTotal = 0;
           this.startStage(1);
         });
       }
@@ -815,7 +961,6 @@
         const onPointerDown = (e) => {
           sound.init();
 
-          // If firing, long press triggers fast forward smoothly (no recall!)
           if (this.state === 'FIRING') {
             this.pressTimer = setTimeout(() => {
               this.isFastForward = true;
@@ -877,6 +1022,71 @@
         }
       }
 
+      calculateFinalScore() {
+        const warpBonus = this.warpCount * 150;
+        const shotBonus = (this.savedShotsTotal + this.shotsRemaining) * 500;
+        const contPenalty = this.continueCount * 2500;
+        const total = Math.max(0, this.baseScore + warpBonus + shotBonus - contPenalty);
+        return {
+          total,
+          base: this.baseScore,
+          warpBonus,
+          shotBonus,
+          contPenalty
+        };
+      }
+
+      getRank(totalScore) {
+        if (totalScore >= 35000) return 'S+';
+        if (totalScore >= 24000) return 'S';
+        if (totalScore >= 16000) return 'A';
+        if (totalScore >= 9000) return 'B';
+        return 'C';
+      }
+
+      checkAndUpdateHighScore(scoreVal) {
+        if (scoreVal > this.bestScore) {
+          this.bestScore = scoreVal;
+          localStorage.setItem('neon_breaker_high_score', this.bestScore.toString());
+          this.bestScoreEl.textContent = this.bestScore.toLocaleString();
+        }
+      }
+
+      buildBarriersForStage(stageNum) {
+        this.barriers = [];
+        if (stageNum < 5) return;
+
+        const w = this.bounds.w;
+        const midY = this.gridTopOffset + GRID_ROWS * this.cellH + 40;
+
+        if (stageNum === 5) {
+          // One center angled diamond reflector
+          this.barriers.push(new ReflectiveBarrier(w * 0.28, midY + 15, w * 0.72, midY + 15, 6, '#f43f5e'));
+        } else if (stageNum === 6) {
+          // Slanted double chevron
+          this.barriers.push(new ReflectiveBarrier(w * 0.15, midY - 10, w * 0.45, midY + 25, 6, '#f59e0b'));
+          this.barriers.push(new ReflectiveBarrier(w * 0.85, midY - 10, w * 0.55, midY + 25, 6, '#f59e0b'));
+        } else if (stageNum === 7) {
+          // Asymmetric deflectors
+          this.barriers.push(new ReflectiveBarrier(w * 0.12, midY - 20, w * 0.48, midY - 5, 6.5, '#ec4899'));
+          this.barriers.push(new ReflectiveBarrier(w * 0.52, midY + 30, w * 0.88, midY + 15, 6.5, '#ec4899'));
+        } else if (stageNum === 8) {
+          // Funnel trap
+          this.barriers.push(new ReflectiveBarrier(w * 0.18, midY - 25, w * 0.38, midY + 20, 6.5, '#38bdf8'));
+          this.barriers.push(new ReflectiveBarrier(w * 0.82, midY - 25, w * 0.62, midY + 20, 6.5, '#38bdf8'));
+        } else if (stageNum === 9) {
+          // Triple pinball gates
+          this.barriers.push(new ReflectiveBarrier(w * 0.10, midY, w * 0.35, midY + 18, 6.5, '#a855f7'));
+          this.barriers.push(new ReflectiveBarrier(w * 0.40, midY - 20, w * 0.60, midY - 20, 6.5, '#22c55e'));
+          this.barriers.push(new ReflectiveBarrier(w * 0.65, midY + 18, w * 0.90, midY, 6.5, '#a855f7'));
+        } else if (stageNum === 10) {
+          // Final Crown Barrier Defense
+          this.barriers.push(new ReflectiveBarrier(w * 0.12, midY - 15, w * 0.36, midY + 12, 7, '#f43f5e'));
+          this.barriers.push(new ReflectiveBarrier(w * 0.38, midY + 25, w * 0.62, midY + 25, 7, '#eab308'));
+          this.barriers.push(new ReflectiveBarrier(w * 0.64, midY + 12, w * 0.88, midY - 15, 7, '#f43f5e'));
+        }
+      }
+
       startStage(stageNum) {
         this.stage = Math.min(stageNum, TOTAL_STAGES);
         this.shotsRemaining = Math.max(5, 7 - Math.floor((this.stage - 1) / 3));
@@ -892,9 +1102,10 @@
 
         this.fastForwardBadge.classList.add('hidden');
         this.buildStageFormation(this.stage);
+        this.buildBarriersForStage(this.stage);
 
         this.blackHoles = [];
-        const miniRadius = 14;
+        const miniRadius = 13.5;
         for (let i = 0; i < BLACK_HOLE_COUNT; i++) {
           const colX = ((i % 3) + 1) * (this.bounds.w / 4) + (Math.random() - 0.5) * 20;
           const rowY = this.gridTopOffset + 25 + (i * ((this.bounds.h - 90) / BLACK_HOLE_COUNT));
@@ -915,9 +1126,9 @@
         this.floatingTexts.push(new FloatText(
           this.launchX,
           this.launchY - 30,
-          '⚡ RESUMED! +3 SHOTS',
+          '⚡ RESUMED! (-10 WARPS / +3 SHOTS)',
           '#10b981',
-          16
+          14
         ));
 
         this.updateHUD();
@@ -1055,8 +1266,11 @@
           this.warpsEl.textContent = this.warpCount.toLocaleString();
         }
         this.shotsEl.textContent = this.shotsRemaining;
-        this.blocksEl.textContent = this.bricks.length;
-        this.scoreEl.textContent = this.score.toLocaleString();
+
+        const currentScoreObj = this.calculateFinalScore();
+        this.scoreEl.textContent = currentScoreObj.total.toLocaleString();
+        this.bestScoreEl.textContent = this.bestScore.toLocaleString();
+
         if (this.hudContinueCountEl) {
           this.hudContinueCountEl.textContent = this.continueCount;
         }
@@ -1109,7 +1323,7 @@
           const b = this.bricks[i];
           if (Math.abs(b.col - centerCol) <= 1 && Math.abs(b.row - centerRow) <= 1) {
             const dead = b.takeDamage(10);
-            this.score += 5;
+            this.baseScore += 30;
             if (dead) {
               this.bricks.splice(i, 1);
             }
@@ -1129,8 +1343,12 @@
           sound.playStageClear();
 
           const isFinal = this.stage >= TOTAL_STAGES;
-          const stageBonus = (isFinal ? 5000 : 1000) + this.shotsRemaining * 250;
-          this.score += stageBonus;
+          const stageBonus = isFinal ? 5000 : 1200;
+          this.baseScore += stageBonus;
+          this.savedShotsTotal += this.shotsRemaining;
+
+          const scoreObj = this.calculateFinalScore();
+          this.checkAndUpdateHighScore(scoreObj.total);
 
           for (let p = 0; p < (isFinal ? 90 : 50); p++) {
             this.particles.push(new Particle(
@@ -1147,7 +1365,7 @@
               if (this.continueCount === 0) {
                 this.stageCompleteSubtitle.textContent = '👑 奇跡のノーコンティニュー完全制覇達成！！！';
               } else {
-                this.stageCompleteSubtitle.textContent = `全10ステージ制覇！（コンティニュー: ${this.continueCount}回 / WARP: ${this.warpCount}回）`;
+                this.stageCompleteSubtitle.textContent = `全10ステージ制覇！（コンティニュー: ${this.continueCount}回）`;
               }
               this.nextStageBtn.textContent = 'PLAY FROM START 🔄';
             } else {
@@ -1157,19 +1375,15 @@
             }
 
             this.clearedStageNum.textContent = `${this.stage} / ${TOTAL_STAGES}`;
-            if (this.clearedWarps) {
-              this.clearedWarps.textContent = `${this.warpCount.toLocaleString()} 回`;
-            }
-            this.clearedStageBonus.textContent = `+${stageBonus.toLocaleString()}`;
-            this.clearedTotalScore.textContent = this.score.toLocaleString();
-            
-            if (this.clearedContinuesUsed) {
-              if (this.continueCount === 0) {
-                this.clearedContinuesUsed.innerHTML = '<span class="text-amber-300 font-black">👑 0 (NO CONTINUE!)</span>';
-              } else {
-                this.clearedContinuesUsed.textContent = `${this.continueCount} 回`;
-              }
-            }
+            this.clearedBaseScore.textContent = scoreObj.base.toLocaleString();
+            this.clearedWarpBonus.textContent = `+${scoreObj.warpBonus.toLocaleString()} (${this.warpCount}回)`;
+            this.clearedShotBonus.textContent = `+${scoreObj.shotBonus.toLocaleString()} (${this.savedShotsTotal}発)`;
+            this.clearedContPenalty.textContent = `-${scoreObj.contPenalty.toLocaleString()} (${this.continueCount}回)`;
+
+            const rank = this.getRank(scoreObj.total);
+            this.clearedRankTag.textContent = rank;
+            this.clearedTotalScore.textContent = scoreObj.total.toLocaleString();
+            this.clearedAllTimeBest.textContent = this.bestScore.toLocaleString();
 
             this.stageCompleteModal.classList.remove('hidden');
           }, 450);
@@ -1179,15 +1393,20 @@
       triggerGameOver() {
         this.state = 'GAMEOVER';
         sound.playGameOver();
+
+        const scoreObj = this.calculateFinalScore();
+        this.checkAndUpdateHighScore(scoreObj.total);
+
         this.finalStageEl.textContent = `STAGE ${this.stage} / ${TOTAL_STAGES}`;
-        if (this.finalWarpsEl) {
-          this.finalWarpsEl.textContent = `${this.warpCount.toLocaleString()} 回`;
-        }
         this.finalRemainingBlocksEl.textContent = `${this.bricks.length} 個`;
-        this.finalScoreEl.textContent = this.score.toLocaleString();
-        if (this.finalContinuesCountEl) {
-          this.finalContinuesCountEl.textContent = `${this.continueCount} 回`;
-        }
+        this.finalWarpsEl.textContent = `${this.warpCount}回 (+${scoreObj.warpBonus.toLocaleString()})`;
+        this.finalContinuesCountEl.textContent = `${this.continueCount}回 (-${scoreObj.contPenalty.toLocaleString()})`;
+
+        const rank = this.getRank(scoreObj.total);
+        this.finalRankTag.textContent = rank;
+        this.finalScoreEl.textContent = scoreObj.total.toLocaleString();
+        this.finalAllTimeBest.textContent = this.bestScore.toLocaleString();
+
         this.gameOverModal.classList.remove('hidden');
       }
 
@@ -1238,7 +1457,7 @@
                 if (ball.trail.length > 6) ball.trail.shift();
               }
 
-              // Left/Right Walls
+              // Walls
               if (ball.x - ball.radius < 0) {
                 ball.x = ball.radius;
                 ball.vx = Math.abs(ball.vx);
@@ -1249,14 +1468,14 @@
                 sound.playPop(1.1);
               }
 
-              // Top Ceiling
+              // Ceiling
               if (ball.y - ball.radius < 0) {
                 ball.y = ball.radius;
                 ball.vy = Math.abs(ball.vy);
                 sound.playPop(1.2);
               }
 
-              // Floor Landing: strictly when moving downwards into the launch boundary
+              // Floor Landing
               if (ball.vy > 0 && ball.y + ball.radius >= this.launchY) {
                 ball.y = this.launchY;
                 ball.active = false;
@@ -1274,7 +1493,6 @@
           }
         }
 
-        // Natural Turn Completion: only when all active balls have naturally landed
         if (this.state === 'FIRING') {
           const allSettled = this.balls.length > 0 && this.balls.every(b => !b.active);
           if (allSettled) {
@@ -1284,7 +1502,20 @@
       }
 
       checkBallCollisions(ball) {
-        // 1. Mini Black Holes Gravitational Lens & Quantum Wormhole Jumps + 50% BALL DUPLICATION
+        // 1. Neon Reflective Barriers (Stage 5+)
+        for (const barrier of this.barriers) {
+          const hitPoint = barrier.checkCollision(ball);
+          if (hitPoint) {
+            this.baseScore += 5;
+            for (let p = 0; p < 4; p++) {
+              this.particles.push(new Particle(hitPoint.x, hitPoint.y, barrier.color, 4, 2, 0.5));
+            }
+            this.updateHUD();
+            return;
+          }
+        }
+
+        // 2. Mini Black Holes Gravitational Lens & Quantum Wormhole Jumps
         for (let i = 0; i < this.blackHoles.length; i++) {
           const bh = this.blackHoles[i];
           const dx = ball.x - bh.x;
@@ -1308,7 +1539,6 @@
               sound.playWormhole();
               bh.triggerWarp();
 
-              // Increment WARP counter & update HUD immediately
               this.warpCount++;
               this.updateHUD();
 
@@ -1325,7 +1555,7 @@
               ball.vy = Math.sin(shootAngle) * spd;
               ball.warpCooldown = 32;
 
-              // 50% chance of spawning an extra duplicate ball through the wormhole
+              // 50% chance of duplicate ball
               const activeCount = this.balls.filter(b => b.active).length;
               if (Math.random() < 0.50 && activeCount < MAX_ACTIVE_BALLS) {
                 sound.playSplit();
@@ -1355,7 +1585,7 @@
           }
         }
 
-        // 2. Destructible Bricks
+        // 3. Destructible Bricks
         for (let i = this.bricks.length - 1; i >= 0; i--) {
           const brick = this.bricks[i];
           const pad = 2.5;
@@ -1373,7 +1603,7 @@
 
           if (distSq < ball.radius * ball.radius) {
             const dead = brick.takeDamage(1);
-            this.score += 2;
+            this.baseScore += 15;
             sound.playPop(1.0 + (brick.row % 5) * 0.1);
 
             if (brick.type === BrickType.MULTIPLIER) {
@@ -1487,20 +1717,25 @@
           b.draw(this.ctx, this.cellW, this.cellH, this.gridTopOffset);
         }
 
-        // 2. Mini Black Holes
+        // 2. Reflective Barriers (Stage 5+)
+        for (const barrier of this.barriers) {
+          barrier.draw(this.ctx);
+        }
+
+        // 3. Mini Black Holes
         for (const bh of this.blackHoles) {
           bh.draw(this.ctx);
         }
 
-        // 3. Aim Trajectory Line
+        // 4. Aim Trajectory Line
         this.drawAimLine();
 
-        // 4. Balls
+        // 5. Balls
         for (const ball of this.balls) {
           ball.draw(this.ctx);
         }
 
-        // 5. Launch Ball Anchor
+        // 6. Launch Ball Anchor
         if (this.state === 'AIMING') {
           this.ctx.save();
           this.ctx.shadowBlur = 12;
@@ -1512,7 +1747,7 @@
           this.ctx.restore();
         }
 
-        // 6. Particles
+        // 7. Particles
         for (let i = this.particles.length - 1; i >= 0; i--) {
           const p = this.particles[i];
           if (!p.update()) {
@@ -1522,7 +1757,7 @@
           }
         }
 
-        // 7. Floating texts
+        // 8. Floating texts
         for (let i = this.floatingTexts.length - 1; i >= 0; i--) {
           const ft = this.floatingTexts[i];
           if (!ft.update()) {
