@@ -66,7 +66,7 @@
   #overlay {
     position: absolute;
     inset: 0;
-    background: rgba(8, 12, 20, 0.9);
+    background: rgba(8, 12, 20, 0.92);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -163,7 +163,7 @@
     <div id="msg-banner" class="msg-banner">敵を撃破！</div>
     <div id="overlay">
       <h2 id="ov-title">QIX LAND INFINITE</h2>
-      <p id="ov-desc">未開拓ゾーンを囲んで陣地を広げよう！<br>敵を小部屋に囲い込めば撃破可能！<br>障害物やアイテムを駆使して無限ステージを突破せよ！</p>
+      <p id="ov-desc">未開拓ゾーンを囲んで陣地を広げよう！<br>敵を小部屋に囲い込めば撃破可能！<br>邪魔な岩は完全に包囲して粉砕せよ！</p>
       <button class="btn" id="start-btn">スタート</button>
     </div>
   </div>
@@ -242,10 +242,10 @@ const GW = 60;
 const GH = 80;
 const CELL_SIZE = 5;
 
-const EMPTY = 0;   // 未開拓
-const CLAIMED = 1; // 領土
+const EMPTY = 0;   // 未開拓（敵が動き回る海）
+const CLAIMED = 1; // 領土（プレイヤーの安全地帯）
 const TRAIL = 2;   // 引いている線
-const ROCK = 3;    // 岩（障害物）
+const ROCK = 3;    // 岩（障害物：非領土。完全包囲されるまで領土化しない）
 
 let grid = new Uint8Array(GW * GH);
 let currentStage = 1;
@@ -255,7 +255,7 @@ let isPlaying = false;
 let currentAreaPercent = 0;
 let stageTargetPercent = 75;
 
-let spawnPoint = { x: 2, y: 2 }; // リスポーン安全座標のフォールバック
+let spawnPoint = { x: 2, y: 2 };
 
 let player = {
   gx: 0, gy: 0,
@@ -271,7 +271,6 @@ let player = {
 
 let enemies = [];
 let items = [];
-let activeGimmicks = [];
 
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
@@ -353,13 +352,25 @@ function plotWorldMap() {
   fillBlob(50, 56, 6, 5, 0);
 }
 
-function placeRock(cx, cy, r) {
+// 岩を「未開拓エリア（EMPTY）の中だけ」に独立して配置
+// CLAIMED（陣地）の周囲3マス以内には絶対に置かない
+function placeRockSafe(cx, cy, r) {
   for (let y = cy - r - 1; y <= cy + r + 1; y++) {
     for (let x = cx - r - 1; x <= cx + r + 1; x++) {
       if (Math.hypot(x - cx, y - cy) <= r) {
-        if (x >= 2 && x < GW - 2 && y >= 2 && y < GH - 2) {
-          // 初期CLAIMEDゾーン（プレイヤー出現地点付近）を岩で上書きしない
-          if (grid[y * GW + x] !== CLAIMED) {
+        if (x >= 4 && x < GW - 4 && y >= 4 && y < GH - 4) {
+          // 近くにCLAIMEDがないかチェック（陣地とくっつくのを防ぐ）
+          let nearClaimed = false;
+          for (let dy = -3; dy <= 3; dy++) {
+            for (let dx = -3; dx <= 3; dx++) {
+              const nx = x + dx, ny = y + dy;
+              if (nx >= 0 && nx < GW && ny >= 0 && ny < GH) {
+                if (grid[ny * GW + nx] === CLAIMED) { nearClaimed = true; break; }
+              }
+            }
+            if (nearClaimed) break;
+          }
+          if (!nearClaimed && grid[y * GW + x] === EMPTY) {
             grid[y * GW + x] = ROCK;
           }
         }
@@ -368,10 +379,56 @@ function placeRock(cx, cy, r) {
   }
 }
 
+// 敵を配置可能な「安全な未開拓（EMPTY）空間」を探索
+// 陣地や岩から十分に離れた広い空間にスポーンさせる
+function findSafeEnemySpawn(radius) {
+  for (let attempt = 0; attempt < 500; attempt++) {
+    const rx = radius + 3 + Math.random() * (GW * CELL_SIZE - (radius + 3) * 2);
+    const ry = radius + 3 + Math.random() * (GH * CELL_SIZE - (radius + 3) * 2);
+
+    let isSafe = true;
+    const checkRadiusCells = Math.ceil((radius + 6) / CELL_SIZE);
+    const egx = Math.floor(rx / CELL_SIZE);
+    const egy = Math.floor(ry / CELL_SIZE);
+
+    for (let dy = -checkRadiusCells; dy <= checkRadiusCells; dy++) {
+      for (let dx = -checkRadiusCells; dx <= checkRadiusCells; dx++) {
+        const cx = egx + dx;
+        const cy = egy + dy;
+        if (cx >= 0 && cx < GW && cy >= 0 && cy < GH) {
+          const cell = grid[cy * GW + cx];
+          // 陣地(CLAIMED)または岩(ROCK)が敵の半径＋マージン内にある場合は却下
+          if (cell === CLAIMED || cell === ROCK) {
+            const cellCenterX = cx * CELL_SIZE + CELL_SIZE / 2;
+            const cellCenterY = cy * CELL_SIZE + CELL_SIZE / 2;
+            if (Math.hypot(rx - cellCenterX, ry - cellCenterY) < radius + CELL_SIZE * 2) {
+              isSafe = false;
+              break;
+            }
+          }
+        }
+      }
+      if (!isSafe) break;
+    }
+
+    if (isSafe) {
+      return { x: rx, y: ry };
+    }
+  }
+  // 万一見つからなかった場合は画面の開けている未開拓セルを探す
+  for (let y = 10; y < GH - 10; y++) {
+    for (let x = 10; x < GW - 10; x++) {
+      if (grid[y * GW + x] === EMPTY) {
+        return { x: x * CELL_SIZE + CELL_SIZE / 2, y: y * CELL_SIZE + CELL_SIZE / 2 };
+      }
+    }
+  }
+  return { x: 30 * CELL_SIZE, y: 30 * CELL_SIZE };
+}
+
 function initStage(stg) {
   grid.fill(EMPTY);
   items = [];
-  activeGimmicks = [];
   player.speedDelay = player.baseDelay;
   player.invincibleTimer = 0;
 
@@ -388,8 +445,7 @@ function initStage(stg) {
     player.gx = 2; player.gy = 2;
   } else if (mapType === 1) {
     plotJapanMap();
-    player.gx = 39; player.gy = 39;
-    activeGimmicks.push("日本列島スタート");
+    player.gx = 39; player.gy = 39; // 本州
   } else if (mapType === 2) {
     const cx = GW / 2, cy = GH / 2;
     for (let y = 0; y < GH; y++) {
@@ -398,11 +454,9 @@ function initStage(stg) {
       }
     }
     player.gx = Math.floor(cx); player.gy = Math.floor(cy);
-    activeGimmicks.push("孤島脱出");
   } else if (mapType === 3) {
     plotWorldMap();
-    player.gx = 35; player.gy = 20;
-    activeGimmicks.push("世界の大陸");
+    player.gx = 35; player.gy = 20; // 欧州
   } else {
     for (let y = 0; y < GH; y++) {
       for (let x = 0; x < GW; x++) {
@@ -412,41 +466,43 @@ function initStage(stg) {
       }
     }
     player.gx = 5; player.gy = 5;
-    activeGimmicks.push("四隅の砦");
   }
 
-  // 安全な初期リスポーン地点を記録
   spawnPoint.x = player.gx;
   spawnPoint.y = player.gy;
 
-  // 岩配置（初期出現地点から離れた未開拓ゾーンのみ）
+  // 1. 岩の安全配置（陣地と接触しないようEMPTYの真ん中に置く）
   if (stg >= 2 && mapType !== 1) {
-    placeRock(Math.floor(GW * 0.35), Math.floor(GH * 0.4), 3);
-    activeGimmicks.push("黒曜石の岩");
+    placeRockSafe(Math.floor(GW * 0.35), Math.floor(GH * 0.4), 3);
     if (stg >= 6) {
-      placeRock(Math.floor(GW * 0.65), Math.floor(GH * 0.6), 4);
+      placeRockSafe(Math.floor(GW * 0.65), Math.floor(GH * 0.65), 3);
     }
   }
 
+  // 2. 敵の安全生成（陣地や岩に絶対に埋まらない位置を計算して配置）
   enemies = [];
   const baseSpeed = 1.6 + Math.min(1.4, stg * 0.12);
 
+  const spawn1 = findSafeEnemySpawn(8);
   if (stg % 3 === 0) {
-    enemies.push({ x: 25 * CELL_SIZE, y: 35 * CELL_SIZE, vx: baseSpeed * 0.9, vy: baseSpeed * 0.7, r: 8, type: 'BOUNCE', color: '#fb923c', name: 'スネーク' });
+    enemies.push({ x: spawn1.x, y: spawn1.y, vx: baseSpeed * 0.9, vy: baseSpeed * 0.7, r: 8, type: 'BOUNCE', color: '#fb923c', name: 'スネーク' });
   } else if (stg % 4 === 0) {
-    enemies.push({ x: 30 * CELL_SIZE, y: 40 * CELL_SIZE, vx: baseSpeed * 0.7, vy: baseSpeed * 0.8, r: 15, type: 'BOSS', color: '#ef4444', name: 'ギガボム' });
-    activeGimmicks.push("大型ボス出現");
+    const bossSpawn = findSafeEnemySpawn(14);
+    enemies.push({ x: bossSpawn.x, y: bossSpawn.y, vx: baseSpeed * 0.7, vy: baseSpeed * 0.8, r: 14, type: 'BOSS', color: '#ef4444', name: 'ギガボム' });
   } else {
-    enemies.push({ x: 30 * CELL_SIZE, y: 30 * CELL_SIZE, vx: baseSpeed, vy: baseSpeed * 0.8, r: 8, type: 'NORMAL', color: '#f43f5e', name: 'スライム' });
+    enemies.push({ x: spawn1.x, y: spawn1.y, vx: baseSpeed, vy: baseSpeed * 0.8, r: 8, type: 'NORMAL', color: '#f43f5e', name: 'スライム' });
   }
 
   if (stg >= 3) {
-    enemies.push({ x: 45 * CELL_SIZE, y: 55 * CELL_SIZE, vx: -baseSpeed * 0.85, vy: baseSpeed * 0.95, r: 7, type: 'FAST', color: '#a855f7', name: 'コメット' });
+    const spawn2 = findSafeEnemySpawn(7);
+    enemies.push({ x: spawn2.x, y: spawn2.y, vx: -baseSpeed * 0.85, vy: baseSpeed * 0.95, r: 7, type: 'FAST', color: '#a855f7', name: 'コメット' });
   }
   if (stg >= 7) {
-    enemies.push({ x: 20 * CELL_SIZE, y: 60 * CELL_SIZE, vx: baseSpeed * 0.9, vy: -baseSpeed * 0.8, r: 8, type: 'NORMAL', color: '#38bdf8', name: 'パルサー' });
+    const spawn3 = findSafeEnemySpawn(8);
+    enemies.push({ x: spawn3.x, y: spawn3.y, vx: baseSpeed * 0.9, vy: -baseSpeed * 0.8, r: 8, type: 'NORMAL', color: '#38bdf8', name: 'パルサー' });
   }
 
+  // 3. アイテムの配置
   const allItemTypes = [
     { type: 'SPEED_UP', icon: '⚡', name: 'スピードUP' },
     { type: 'SPEED_DOWN', icon: '🐌', name: 'スピードダウン' },
@@ -459,8 +515,8 @@ function initStage(stg) {
   const it1 = allItemTypes[(stg) % allItemTypes.length];
   const it2 = allItemTypes[(stg + 3) % allItemTypes.length];
 
-  const findEmptyCell = () => {
-    for (let attempts = 0; attempts < 100; attempts++) {
+  const findEmptyItemCell = () => {
+    for (let attempts = 0; attempts < 200; attempts++) {
       const rx = 5 + Math.floor(Math.random() * (GW - 10));
       const ry = 5 + Math.floor(Math.random() * (GH - 10));
       if (grid[ry * GW + rx] === EMPTY) return { gx: rx, gy: ry };
@@ -468,11 +524,11 @@ function initStage(stg) {
     return { gx: 30, gy: 50 };
   };
 
-  const p1 = findEmptyCell();
+  const p1 = findEmptyItemCell();
   items.push({ gx: p1.gx, gy: p1.gy, type: it1.type, icon: it1.icon, name: it1.name });
 
   if (stg >= 2) {
-    const p2 = findEmptyCell();
+    const p2 = findEmptyItemCell();
     items.push({ gx: p2.gx, gy: p2.gy, type: it2.type, icon: it2.icon, name: it2.name });
   }
 
@@ -483,27 +539,34 @@ function initStage(stg) {
   updateStats();
 }
 
+// 領土率計算：岩（ROCK）は絶対に領土（CLAIMED）としてカウントしない
 function updateStats() {
   let claimedCount = 0;
-  let totalValid = 0;
+  let totalStageCells = 0;
   for (let i = 0; i < GW * GH; i++) {
-    if (grid[i] !== ROCK) totalValid++;
-    if (grid[i] === CLAIMED) claimedCount++;
+    // 全体母数はROCK以外のセル数
+    if (grid[i] !== ROCK) {
+      totalStageCells++;
+      if (grid[i] === CLAIMED) claimedCount++;
+    }
   }
-  currentAreaPercent = Math.floor((claimedCount / Math.max(1, totalValid)) * 100);
+  currentAreaPercent = Math.floor((claimedCount / Math.max(1, totalStageCells)) * 100);
   areaDisp.textContent = `${currentAreaPercent}%`;
   stageDisp.textContent = `STAGE ${currentStage}`;
   lifeDisp.textContent = '❤'.repeat(Math.max(0, lives));
   enemyDisp.textContent = `👾×${enemies.length}`;
 }
 
+// 囲い込み処理 (Flood Fill)
 function fillEnclosedArea() {
+  // 引いた線を一旦 CLAIMED に変換
   player.trail.forEach(pt => { grid[pt.y * GW + pt.x] = CLAIMED; });
 
   const visited = new Uint8Array(GW * GH);
   const queue = [];
   const survivingEnemies = [];
 
+  // 各敵の生存判定
   enemies.forEach(e => {
     const egx = Math.max(0, Math.min(GW - 1, Math.floor(e.x / CELL_SIZE)));
     const egy = Math.max(0, Math.min(GH - 1, Math.floor(e.y / CELL_SIZE)));
@@ -521,6 +584,7 @@ function fillEnclosedArea() {
     survivingEnemies.push(e);
   });
 
+  // 敵のいるエリアから到達可能な EMPTY セルのみを探索
   let head = 0;
   while(head < queue.length) {
     const qx = queue[head++];
@@ -532,6 +596,7 @@ function fillEnclosedArea() {
       const ny = qy + dirs[i][1];
       if (nx >= 0 && nx < GW && ny >= 0 && ny < GH) {
         const nIdx = ny * GW + nx;
+        // ROCK や CLAIMED は通れない壁
         if (grid[nIdx] === EMPTY && visited[nIdx] === 0) {
           visited[nIdx] = 1;
           queue.push(nx, ny);
@@ -540,6 +605,7 @@ function fillEnclosedArea() {
     }
   }
 
+  // 敵の到達しない EMPTY セルのみを CLAIMED に変換（※ROCKは勝手にCLAIMEDにしない）
   for (let y = 0; y < GH; y++) {
     for (let x = 0; x < GW; x++) {
       const idx = y * GW + x;
@@ -549,20 +615,25 @@ function fillEnclosedArea() {
     }
   }
 
-  // 岩の粉砕判定
+  // 岩（ROCK）の完全包囲判定：
+  // 岩の周囲8方向に EMPTY（未開拓）が1つも残っていない場合のみ、岩が粉砕されて CLAIMED に変わる
   let rocksCleared = false;
   for (let y = 0; y < GH; y++) {
     for (let x = 0; x < GW; x++) {
       const idx = y * GW + x;
       if (grid[idx] === ROCK) {
         let hasEmptyNeighbor = false;
-        const dirs = [[1,0], [-1,0], [0,1], [0,-1]];
-        for (let i = 0; i < 4; i++) {
-          const nx = x + dirs[i][0];
-          const ny = y + dirs[i][1];
-          if (nx >= 0 && nx < GW && ny >= 0 && ny < GH) {
-            if (grid[ny * GW + nx] === EMPTY) { hasEmptyNeighbor = true; break; }
+        for (let dy = -1; dy <= 1; dy++) {
+          for (let dx = -1; dx <= 1; dx++) {
+            const nx = x + dx, ny = y + dy;
+            if (nx >= 0 && nx < GW && ny >= 0 && ny < GH) {
+              if (grid[ny * GW + nx] === EMPTY) {
+                hasEmptyNeighbor = true;
+                break;
+              }
+            }
           }
+          if (hasEmptyNeighbor) break;
         }
         if (!hasEmptyNeighbor) {
           grid[idx] = CLAIMED;
@@ -682,11 +753,10 @@ function handleDeath() {
     currentStage = 1;
     lives = 3;
   } else {
-    // 復活処理：岩(ROCK)や未開拓(EMPTY)を除外した純粋な領土(CLAIMED)セルを厳格探索
+    // 復活処理：絶対に ROCK や EMPTY を踏まない純粋な CLAIMED を探索
     let found = false;
-    // 線の始点（出発点）があればそこを優先
-    const searchOriginX = player.trail.length > 0 ? player.trail[0].x : player.gx;
-    const searchOriginY = player.trail.length > 0 ? player.trail[0].y : player.gy;
+    const searchOriginX = spawnPoint.x;
+    const searchOriginY = spawnPoint.y;
 
     for (let r = 0; r < GW && !found; r++) {
       for (let dy = -r; dy <= r && !found; dy++) {
@@ -695,7 +765,7 @@ function handleDeath() {
           const nx = searchOriginX + dx;
           const ny = searchOriginY + dy;
           if (nx >= 0 && nx < GW && ny >= 0 && ny < GH) {
-            // CLAIMEDであり、かつ岩(ROCK)でないことを厳密保証
+            // ROCK を完全に除外
             if (grid[ny * GW + nx] === CLAIMED) {
               player.gx = nx;
               player.gy = ny;
@@ -707,7 +777,6 @@ function handleDeath() {
       }
     }
 
-    // 万一見つからなかった場合はステージ開始時の確定安全地点へ
     if (!found) {
       player.gx = spawnPoint.x;
       player.gy = spawnPoint.y;
@@ -738,6 +807,7 @@ function updatePlayer() {
 
   const target = grid[ny * GW + nx];
 
+  // 岩（ROCK）には突っ込めない
   if (target === ROCK) {
     player.vx = 0; player.vy = 0;
     player.nextVx = 0; player.nextVy = 0;
@@ -793,11 +863,14 @@ function updateEnemies() {
           const cellCenterY = cy * CELL_SIZE + CELL_SIZE / 2;
           const dist = Math.hypot(e.x - cellCenterX, e.y - cellCenterY);
 
+          // 領土(CLAIMED)または岩(ROCK)に当たったら確実に反発
           if ((cell === CLAIMED || cell === ROCK) && dist < e.r + CELL_SIZE / 2) {
             if (Math.abs(e.x - cellCenterX) > Math.abs(e.y - cellCenterY)) {
-              e.vx *= -1; e.x += e.vx * 1.2;
+              e.vx *= -1;
+              e.x += (e.vx > 0 ? 1 : -1) * 1.5;
             } else {
-              e.vy *= -1; e.y += e.vy * 1.2;
+              e.vy *= -1;
+              e.y += (e.vy > 0 ? 1 : -1) * 1.5;
             }
           }
           if (cell === TRAIL && dist < e.r + CELL_SIZE / 2) {
@@ -831,8 +904,14 @@ function draw() {
         ctx.fillStyle = '#22c55e';
         ctx.fillRect(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE);
       } else if (c === ROCK) {
-        ctx.fillStyle = (x + y) % 2 === 0 ? '#475569' : '#334155';
+        // 岩：漆黒の鉱物ブロック（領土とは全く異なる独立した質感）
+        ctx.fillStyle = (x + y) % 2 === 0 ? '#475569' : '#1e293b';
         ctx.fillRect(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+        // ひび割れ風エフェクト
+        if ((x * 3 + y * 7) % 11 === 0) {
+          ctx.fillStyle = '#94a3b8';
+          ctx.fillRect(x * CELL_SIZE + 1, y * CELL_SIZE + 1, 2, 2);
+        }
       }
     }
   }
