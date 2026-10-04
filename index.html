@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>Qix Land - 領土拡大パズル</title>
+<title>Qix Land Infinite - 領土拡大パズル</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-user-select: none; }
   body {
@@ -34,7 +34,7 @@
   .stat-col { display: flex; flex-direction: column; align-items: center; }
   .stat-label { font-size: 10px; color: #94a3b8; font-weight: 600; text-transform: uppercase; }
   .stat-val { font-size: 16px; font-weight: 800; color: #38bdf8; }
-  .stat-target { font-size: 10px; color: #fbbf24; }
+  .stat-sub { font-size: 10px; color: #fbbf24; font-weight: bold; }
 
   #game-wrapper {
     position: relative;
@@ -49,7 +49,7 @@
   #canvas-container {
     position: relative;
     width: 100%;
-    aspect-ratio: 3 / 4; /* 縦長スマホ比率 */
+    aspect-ratio: 3 / 4;
     max-height: 68vh;
     background: #030712;
     border: 2px solid #334155;
@@ -66,7 +66,7 @@
   #overlay {
     position: absolute;
     inset: 0;
-    background: rgba(8, 12, 20, 0.88);
+    background: rgba(8, 12, 20, 0.9);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -91,7 +91,6 @@
   }
   .btn:active { transform: scale(0.95); }
 
-  /* 画面下部 D-PAD */
   #controls {
     display: grid;
     grid-template-columns: repeat(3, 62px);
@@ -123,8 +122,8 @@
     top: 12px;
     left: 50%;
     transform: translateX(-50%);
-    background: rgba(15, 23, 42, 0.9);
-    padding: 6px 14px;
+    background: rgba(15, 23, 42, 0.95);
+    padding: 6px 16px;
     border-radius: 20px;
     border: 1px solid #38bdf8;
     color: #facc15;
@@ -133,6 +132,8 @@
     pointer-events: none;
     opacity: 0;
     transition: opacity 0.3s;
+    white-space: nowrap;
+    z-index: 10;
   }
 </style>
 </head>
@@ -141,7 +142,7 @@
 <header>
   <div class="stat-col">
     <span class="stat-label">ステージ</span>
-    <span class="stat-val" id="stage-disp">1 / 5</span>
+    <span class="stat-val" id="stage-disp">STAGE 1</span>
   </div>
   <div class="stat-col">
     <span class="stat-label">領土 (目標 <span id="target-disp">75%</span>)</span>
@@ -151,7 +152,7 @@
     <span class="stat-label">ライフ / 敵</span>
     <div style="display:flex; align-items:center; gap:6px;">
       <span class="stat-val" id="life-disp" style="color: #f43f5e;">❤❤❤</span>
-      <span class="stat-target" id="enemy-disp" style="font-weight:bold;">👾×2</span>
+      <span class="stat-sub" id="enemy-disp">👾×1</span>
     </div>
   </div>
 </header>
@@ -161,9 +162,9 @@
     <canvas id="gameCanvas" width="300" height="400"></canvas>
     <div id="msg-banner" class="msg-banner">敵を撃破！</div>
     <div id="overlay">
-      <h2 id="ov-title">QIX LAND</h2>
-      <p id="ov-desc">安全地帯から出発して線を引いて戻ると領土を奪取！<br>敵を小さなエリアに閉じ込めて【撃破】も可能です！</p>
-      <button class="btn" id="start-btn">ゲームスタート</button>
+      <h2 id="ov-title">QIX LAND INFINITE</h2>
+      <p id="ov-desc">未開拓ゾーンを囲んで陣地を広げよう！<br>敵を小部屋に囲い込めば撃破可能！<br>障害物やアイテムを駆使して無限ステージを突破せよ！</p>
+      <button class="btn" id="start-btn">スタート</button>
     </div>
   </div>
 </div>
@@ -197,20 +198,25 @@ class SoundSystem {
     osc.connect(g); g.connect(this.ctx.destination);
     osc.start(); osc.stop(this.ctx.currentTime + duration);
   }
-  playLine() { this.playTone(520, 'square', 0.04, 0.02); }
+  playLine() { this.playTone(520, 'square', 0.03, 0.02); }
   playCut() {
     [440, 554, 659, 880].forEach((f, i) => {
-      setTimeout(() => this.playTone(f, 'triangle', 0.12, 0.06), i * 35);
+      setTimeout(() => this.playTone(f, 'triangle', 0.12, 0.06), i * 30);
     });
   }
   playKill() {
     [220, 440, 880, 1100].forEach((f, i) => {
-      setTimeout(() => this.playTone(f, 'sawtooth', 0.15, 0.09), i * 40);
+      setTimeout(() => this.playTone(f, 'sawtooth', 0.15, 0.08), i * 35);
     });
   }
-  playItem() {
+  playBuff() {
     [587, 740, 880, 1174].forEach((f, i) => {
-      setTimeout(() => this.playTone(f, 'sine', 0.15, 0.08), i * 40);
+      setTimeout(() => this.playTone(f, 'sine', 0.14, 0.08), i * 35);
+    });
+  }
+  playDebuff() {
+    [300, 260, 220, 180].forEach((f, i) => {
+      setTimeout(() => this.playTone(f, 'sawtooth', 0.14, 0.08), i * 40);
     });
   }
   playHit() {
@@ -219,32 +225,32 @@ class SoundSystem {
     const g = this.ctx.createGain();
     osc.type = 'sawtooth';
     osc.frequency.setValueAtTime(180, this.ctx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(40, this.ctx.currentTime + 0.35);
+    osc.frequency.exponentialRampToValueAtTime(40, this.ctx.currentTime + 0.3);
     g.gain.setValueAtTime(0.2, this.ctx.currentTime);
-    g.gain.linearRampToValueAtTime(0, this.ctx.currentTime + 0.35);
+    g.gain.linearRampToValueAtTime(0, this.ctx.currentTime + 0.3);
     osc.connect(g); g.connect(this.ctx.destination);
-    osc.start(); osc.stop(this.ctx.currentTime + 0.35);
+    osc.start(); osc.stop(this.ctx.currentTime + 0.3);
   }
   playClear() {
     [523, 659, 783, 1046, 1318].forEach((f, i) => {
-      setTimeout(() => this.playTone(f, 'sine', 0.25, 0.1), i * 70);
+      setTimeout(() => this.playTone(f, 'sine', 0.22, 0.1), i * 60);
     });
   }
 }
 const sfx = new SoundSystem();
 
-// グリッド定数 (スマホ縦長比 60 x 80 = 4800セル)
 const GW = 60;
 const GH = 80;
 const CELL_SIZE = 5; // 300 x 400px
 
-const EMPTY = 0;
-const CLAIMED = 1;
-const TRAIL = 2;
+const EMPTY = 0;   // 未開拓
+const CLAIMED = 1; // 領土（安全地帯）
+const TRAIL = 2;   // 引いている線
+const ROCK = 3;    // 障害物（岩：安全地帯にできず、線も接続できない）
 
 let grid = new Uint8Array(GW * GH);
 let currentStage = 1;
-const MAX_STAGE = 5;
+let highestStage = 1;
 let lives = 3;
 let isPlaying = false;
 let currentAreaPercent = 0;
@@ -256,12 +262,15 @@ let player = {
   nextVx: 0, nextVy: 0,
   inClaimed: true,
   trail: [],
+  baseDelay: 2,   // 基本の歩進間隔
+  speedDelay: 2,
   speedCounter: 0,
-  speedDelay: 2 // フレームごとの歩進間隔
+  invincibleTimer: 0 // バリア無敵時間
 };
 
 let enemies = [];
-let items = []; // { gx, gy, type: 'HEART'|'SLOW'|'BOMB' }
+let items = []; // { gx, gy, type, icon, name }
+let activeGimmicks = []; // 今回のステージのギミック名
 
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
@@ -281,88 +290,24 @@ function showBanner(text, color="#facc15") {
   msgBanner.style.color = color;
   msgBanner.style.borderColor = color;
   msgBanner.style.opacity = '1';
-  setTimeout(() => { msgBanner.style.opacity = '0'; }, 1600);
+  setTimeout(() => { msgBanner.style.opacity = '0'; }, 1800);
 }
 
-// ステージ毎のカラーパレット＆テクスチャ生成
-const STAGE_THEMES = [
-  null,
-  // 1: ネオンサイバーパンク
-  {
-    name: "ネオン・サイバーシティ",
-    desc: "王道の外枠スタート。紫とシアンのサイバーグリッドを解放せよ！",
-    darkBg: "#050814",
-    landBase: "#0284c7",
-    target: 75,
-    pixelArt: (x, y) => ((x ^ y) % 6 === 0 ? "#38bdf8" : (x % 3 === 0 ? "#0369a1" : "#0284c7"))
-  },
-  // 2: 日本列島 (リアル詳細シルエット)
-  {
-    name: "日本列島・日の出",
-    desc: "日本列島（北海道・本州・四国・九州・沖縄）から太平洋と日本海を開拓！",
-    darkBg: "#031024", // 深海
-    landBase: "#15803d",
-    target: 70,
-    pixelArt: (x, y) => {
-      // 桜色と新緑が混ざる日本の豊かな大地
-      const v = (x * 7 + y * 13) % 20;
-      if (v === 0) return "#fb7185"; // 桜ピンク
-      if (v < 6) return "#22c55e"; // 若草
-      if (v < 12) return "#16a34a"; // 森林
-      return "#15803d";
-    }
-  },
-  // 3: 世界地図 (リアルシルエット・七大州)
-  {
-    name: "世界地図・大航海",
-    desc: "世界の大陸から大海原へ！広大な世界を切り取れ！",
-    darkBg: "#021329",
-    landBase: "#b45309",
-    target: 68,
-    pixelArt: (x, y) => {
-      const v = (x * 11 + y * 17) % 24;
-      if (v < 4) return "#f59e0b"; // 砂漠ゴールド
-      if (v < 10) return "#84cc16"; // サバンナグリーン
-      if (v < 16) return "#0284c7"; // 水脈
-      return "#d97706";
-    }
-  },
-  // 4: 溶岩マグマ要塞 (中央スタート)
-  {
-    name: "マグマコア・要塞",
-    desc: "中心のマグマ炉心から外へ展開！火の玉スライムを包囲せよ！",
-    darkBg: "#180606",
-    landBase: "#b91c1c",
-    target: 75,
-    pixelArt: (x, y) => {
-      const d = Math.hypot(x - GW/2, y - GH/2);
-      if ((Math.floor(d) + x + y) % 5 === 0) return "#f97316";
-      if ((x * y) % 7 === 0) return "#ef4444";
-      return "#991b1b";
-    }
-  },
-  // 5: 星座・コズミック迷宮
-  {
-    name: "コズミック・ギャラクシー",
-    desc: "最終決戦！超高速コメットと巨大ボスをトラップに閉じ込めろ！",
-    darkBg: "#09031c",
-    landBase: "#7c3aed",
-    target: 75,
-    pixelArt: (x, y) => {
-      const s = (x * 31 + y * 47) % 33;
-      if (s === 0) return "#f8fafc"; // 星
-      if (s < 5) return "#c084fc"; // 星雲紫
-      if (s < 12) return "#6366f1"; // インディゴ
-      return "#581c87";
-    }
-  }
+// 多彩なテーマパレット
+const THEMES = [
+  { name: "サイバーグリッド", darkBg: "#050814", landCol: (x, y) => ((x ^ y) % 6 === 0 ? "#38bdf8" : (x % 3 === 0 ? "#0369a1" : "#0284c7")) },
+  { name: "日本列島グリーン", darkBg: "#031024", landCol: (x, y) => ((x*7 + y*13)%20 === 0 ? "#fb7185" : ((x*7 + y*13)%20 < 8 ? "#22c55e" : "#15803d")) },
+  { name: "サバンナゴールド", darkBg: "#021329", landCol: (x, y) => ((x*11 + y*17)%24 < 6 ? "#f59e0b" : ((x*11 + y*17)%24 < 14 ? "#84cc16" : "#d97706")) },
+  { name: "マグマコア", darkBg: "#180606", landCol: (x, y) => (((x + y) % 5 === 0) ? "#f97316" : ((x * y) % 7 === 0 ? "#ef4444" : "#991b1b")) },
+  { name: "コズミックギャラクシー", darkBg: "#09031c", landCol: (x, y) => ((x*31 + y*47)%33 === 0 ? "#ffffff" : ((x*31 + y*47)%33 < 8 ? "#c084fc" : "#6b21a8")) },
+  { name: "アイスブリザード", darkBg: "#04151f", landCol: (x, y) => ((x + y*2)%7 === 0 ? "#e0f2fe" : ((x^y)%4 === 0 ? "#7dd3fc" : "#0284c7")) },
+  { name: "ディープフォレスト", darkBg: "#05160e", landCol: (x, y) => ((x*y)%9 === 0 ? "#a3e635" : ((x+y)%5 === 0 ? "#16a34a" : "#065f46")) },
+  { name: "ネオントウキョウ", darkBg: "#160517", landCol: (x, y) => ((x*3 + y)%8 === 0 ? "#f43f5e" : ((x^y)%5 === 0 ? "#e879f9" : "#86198f")) }
 ];
 
-// 日本地図のリアルなドットプロット
+// 日本地図プロット
 function plotJapanMap() {
-  const setCell = (x, y) => {
-    if (x >= 0 && x < GW && y >= 0 && y < GH) grid[y * GW + x] = CLAIMED;
-  };
+  const setCell = (x, y) => { if (x >= 0 && x < GW && y >= 0 && y < GH) grid[y * GW + x] = CLAIMED; };
   const fillEllipse = (cx, cy, rx, ry, tilt=0) => {
     const cos = Math.cos(tilt), sin = Math.sin(tilt);
     for (let y = cy - ry - 2; y <= cy + ry + 2; y++) {
@@ -374,41 +319,19 @@ function plotJapanMap() {
       }
     }
   };
-
-  // 1. 北海道 (ひし形＋渡島半島)
-  fillEllipse(44, 15, 8, 5, 0.2);
-  fillEllipse(40, 20, 4, 3, -0.5); // 渡島半島
-  fillEllipse(50, 12, 3, 2, 0.4);  // 知床・根室
-
-  // 2. 本州 (弓なりのリアルカーブ)
-  // 東北
-  fillEllipse(41, 27, 4, 6, -0.1);
-  fillEllipse(43, 29, 3, 4, 0); // 下北・三陸
-  // 関東
-  fillEllipse(39, 39, 6, 5, 0.3);
-  fillEllipse(42, 42, 3, 2, 0); // 房総半島
-  // 中部・北陸
-  fillEllipse(33, 43, 6, 6, -0.4);
-  fillEllipse(33, 37, 2, 4, -0.2); // 能登半島
-  // 近畿
-  fillEllipse(27, 49, 4, 5, 0.2);
-  fillEllipse(28, 54, 3, 3, 0); // 紀伊半島
-  // 中国
-  fillEllipse(19, 49, 7, 3, -0.2);
-
-  // 3. 四国
-  fillEllipse(22, 57, 5, 3, -0.3);
-
-  // 4. 九州
-  fillEllipse(14, 59, 4, 6, 0.2);
-  fillEllipse(11, 64, 3, 3, -0.3); // 薩摩・大隅
-
-  // 5. 沖縄・南西諸島
-  fillEllipse(8, 72, 2, 2, 0.5);
-  fillEllipse(6, 75, 1, 1, 0.5);
+  fillEllipse(44, 15, 8, 5, 0.2); // 北海道
+  fillEllipse(40, 20, 4, 3, -0.5);
+  fillEllipse(41, 27, 4, 6, -0.1); // 東北
+  fillEllipse(39, 39, 6, 5, 0.3);  // 関東
+  fillEllipse(33, 43, 6, 6, -0.4); // 中部
+  fillEllipse(27, 49, 4, 5, 0.2);  // 近畿
+  fillEllipse(19, 49, 7, 3, -0.2); // 中国
+  fillEllipse(22, 57, 5, 3, -0.3); // 四国
+  fillEllipse(14, 59, 4, 6, 0.2);  // 九州
+  fillEllipse(8, 72, 2, 2, 0.5);   // 沖縄
 }
 
-// 世界地図のリアルなドットプロット
+// 世界地図プロット
 function plotWorldMap() {
   const fillBlob = (cx, cy, rx, ry, tilt=0) => {
     const cos = Math.cos(tilt), sin = Math.sin(tilt);
@@ -423,81 +346,56 @@ function plotWorldMap() {
       }
     }
   };
-
-  // 北米
-  fillBlob(15, 20, 8, 7, 0.2);
-  fillBlob(9, 14, 5, 4, -0.2); // アラスカ
-  fillBlob(18, 30, 3, 5, 0.5); // メキシコ・中米
-  fillBlob(24, 10, 4, 3, 0.1); // グリーンランド
-
-  // 南米
-  fillBlob(21, 48, 6, 11, 0.3);
-
-  // ヨーロッパ
-  fillBlob(34, 19, 5, 4, 0.1);
-  fillBlob(32, 13, 2, 4, 0.2); // スカンジナビア
-
-  // アフリカ
-  fillBlob(35, 38, 7, 10, 0.1);
-
-  // ユーラシア / アジア
-  fillBlob(45, 20, 11, 7, -0.1);
-  fillBlob(45, 32, 4, 4, 0.2); // インド
-  fillBlob(51, 35, 4, 5, 0.4); // 東南アジア
-
-  // オーストラリア
-  fillBlob(50, 56, 6, 5, 0);
+  fillBlob(15, 20, 8, 7, 0.2);  // 北米
+  fillBlob(9, 14, 5, 4, -0.2);
+  fillBlob(21, 48, 6, 11, 0.3); // 南米
+  fillBlob(34, 19, 5, 4, 0.1);  // 欧州
+  fillBlob(35, 38, 7, 10, 0.1); // アフリカ
+  fillBlob(45, 20, 11, 7, -0.1);// ユーラシア
+  fillBlob(50, 56, 6, 5, 0);    // 豪州
 }
 
-// ステージ初期化
+// 岩（障害物）配置
+function placeRock(cx, cy, r) {
+  for (let y = cy - r - 1; y <= cy + r + 1; y++) {
+    for (let x = cx - r - 1; x <= cx + r + 1; x++) {
+      if (Math.hypot(x - cx, y - cy) <= r) {
+        if (x >= 2 && x < GW - 2 && y >= 2 && y < GH - 2) {
+          grid[y * GW + x] = ROCK;
+        }
+      }
+    }
+  }
+}
+
+// ステージ初期化（無限ステージジェネレーター）
 function initStage(stg) {
   grid.fill(EMPTY);
   items = [];
-  const theme = STAGE_THEMES[stg];
-  stageTargetPercent = theme.target;
+  activeGimmicks = [];
+  player.speedDelay = player.baseDelay;
+  player.invincibleTimer = 0;
+
+  // 目標％ (基本75%、高難度で微増、最大80%)
+  stageTargetPercent = Math.min(80, 70 + Math.floor(stg / 3));
   targetDisp.textContent = `${stageTargetPercent}%`;
 
-  if (stg === 1) {
-    // 枠クラシック
+  // 地形パターンの決定
+  const mapType = (stg - 1) % 5;
+  if (mapType === 0) {
+    // 外枠スタート
     for (let x = 0; x < GW; x++) {
       for (let y = 0; y < GH; y++) {
         if (x < 2 || x >= GW - 2 || y < 2 || y >= GH - 2) grid[y * GW + x] = CLAIMED;
       }
     }
     player.gx = 2; player.gy = 2;
-    enemies = [
-      { x: 30 * CELL_SIZE, y: 35 * CELL_SIZE, vx: 1.8, vy: 1.4, r: 9, type: 'NORMAL', hp: 1, color: '#f43f5e', name: 'スライム' },
-      { x: 40 * CELL_SIZE, y: 55 * CELL_SIZE, vx: -1.4, vy: 1.8, r: 8, type: 'BOUNCE', hp: 1, color: '#fb923c', name: 'バウンサー' }
-    ];
-    items.push({ gx: 20, gy: 30, type: 'HEART' });
-    items.push({ gx: 40, gy: 50, type: 'SLOW' });
-  }
-  else if (stg === 2) {
-    // 日本列島シルエット
+  } else if (mapType === 1) {
     plotJapanMap();
-    player.gx = 39; player.gy = 39; // 東京付近スタート！
-    enemies = [
-      { x: 12 * CELL_SIZE, y: 25 * CELL_SIZE, vx: 1.9, vy: 1.2, r: 8, type: 'NORMAL', hp: 1, color: '#38bdf8', name: '日本海シーサー' },
-      { x: 50 * CELL_SIZE, y: 60 * CELL_SIZE, vx: -1.7, vy: -1.5, r: 10, type: 'FAST', hp: 1, color: '#f43f5e', name: '太平洋マグロ' }
-    ];
-    items.push({ gx: 48, gy: 25, type: 'BOMB' });
-    items.push({ gx: 15, gy: 45, type: 'HEART' });
-  }
-  else if (stg === 3) {
-    // 世界地図
-    plotWorldMap();
-    player.gx = 35; player.gy = 20; // ヨーロッパ発大航海！
-    enemies = [
-      { x: 20 * CELL_SIZE, y: 22 * CELL_SIZE, vx: 1.6, vy: -1.4, r: 8, type: 'FAST', hp: 1, color: '#a855f7', name: '大西洋ゴースト' },
-      { x: 32 * CELL_SIZE, y: 65 * CELL_SIZE, vx: -1.8, vy: 1.2, r: 9, type: 'NORMAL', hp: 1, color: '#eab308', name: 'インド洋クラーケン' },
-      { x: 50 * CELL_SIZE, y: 40 * CELL_SIZE, vx: 1.4, vy: 1.9, r: 8, type: 'BOUNCE', hp: 1, color: '#ec4899', name: '南太平洋エイ' }
-    ];
-    items.push({ gx: 28, gy: 35, type: 'HEART' });
-    items.push({ gx: 42, gy: 50, type: 'SLOW' });
-    items.push({ gx: 10, gy: 65, type: 'BOMB' });
-  }
-  else if (stg === 4) {
-    // マグマ要塞・中央孤島スタート
+    player.gx = 39; player.gy = 39; // 東京付近
+    activeGimmicks.push("日本列島スタート");
+  } else if (mapType === 2) {
+    // センター孤島
     const cx = GW / 2, cy = GH / 2;
     for (let y = 0; y < GH; y++) {
       for (let x = 0; x < GW; x++) {
@@ -505,31 +403,91 @@ function initStage(stg) {
       }
     }
     player.gx = Math.floor(cx); player.gy = Math.floor(cy);
-    enemies = [
-      // 巨大ボス
-      { x: 15 * CELL_SIZE, y: 20 * CELL_SIZE, vx: 1.2, vy: 1.5, r: 16, type: 'BOSS', hp: 1, color: '#ef4444', name: '巨大メガマグマ' },
-      { x: 45 * CELL_SIZE, y: 65 * CELL_SIZE, vx: -2.3, vy: -1.8, r: 7, type: 'FAST', hp: 1, color: '#fbbf24', name: '火の粉' }
-    ];
-    items.push({ gx: 15, gy: 65, type: 'HEART' });
-    items.push({ gx: 45, gy: 20, type: 'BOMB' });
-  }
-  else if (stg === 5) {
-    // コズミック迷宮
-    for (let x = 0; x < GW; x++) {
-      for (let y = 0; y < GH; y++) {
-        if (x < 2 || x >= GW - 2 || y < 2 || y >= GH - 2) grid[y * GW + x] = CLAIMED;
-        if (Math.hypot(x - 30, y - 40) < 6) grid[y * GW + x] = CLAIMED;
+    activeGimmicks.push("孤島脱出");
+  } else if (mapType === 3) {
+    plotWorldMap();
+    player.gx = 35; player.gy = 20; // 欧州
+    activeGimmicks.push("世界の大陸");
+  } else {
+    // 四隅の砦
+    for (let y = 0; y < GH; y++) {
+      for (let x = 0; x < GW; x++) {
+        if ((x < 10 && y < 10) || (x > GW - 10 && y < 10) || (x < 10 && y > GH - 10) || (x > GW - 10 && y > GH - 10)) {
+          grid[y * GW + x] = CLAIMED;
+        }
       }
     }
-    player.gx = 2; player.gy = 2;
-    enemies = [
-      { x: 20 * CELL_SIZE, y: 30 * CELL_SIZE, vx: 2.8, vy: 2.2, r: 9, type: 'FAST', hp: 1, color: '#c084fc', name: '流星コメット' },
-      { x: 40 * CELL_SIZE, y: 50 * CELL_SIZE, vx: -2.2, vy: 2.5, r: 10, type: 'BOUNCE', hp: 1, color: '#38bdf8', name: 'パルサー' },
-      { x: 30 * CELL_SIZE, y: 65 * CELL_SIZE, vx: 1.5, vy: -2.0, r: 14, type: 'BOSS', hp: 1, color: '#f43f5e', name: 'ブラックホール' }
-    ];
-    items.push({ gx: 10, gy: 20, type: 'BOMB' });
-    items.push({ gx: 50, gy: 20, type: 'SLOW' });
-    items.push({ gx: 30, gy: 25, type: 'HEART' });
+    player.gx = 5; player.gy = 5;
+    activeGimmicks.push("四隅の砦");
+  }
+
+  // ギミック1: 岩の配置 (ステージ2以降、限定的に1〜2個出現)
+  if (stg >= 2 && mapType !== 1) {
+    placeRock(Math.floor(GW * 0.35), Math.floor(GH * 0.4), 3);
+    activeGimmicks.push("黒曜石の岩");
+    if (stg >= 6) {
+      placeRock(Math.floor(GW * 0.65), Math.floor(GH * 0.6), 4);
+    }
+  }
+
+  // 敵の生成（ごちゃごちゃしないよう最大3体までに制限）
+  enemies = [];
+  const baseSpeed = 1.6 + Math.min(1.4, stg * 0.12);
+
+  // 敵1: 必ず出る標準タイプ（ステージで性格変化）
+  if (stg % 3 === 0) {
+    // バウンサー（蛇行）
+    enemies.push({ x: 25 * CELL_SIZE, y: 35 * CELL_SIZE, vx: baseSpeed * 0.9, vy: baseSpeed * 0.7, r: 8, type: 'BOUNCE', color: '#fb923c', name: 'スネーク' });
+  } else if (stg % 4 === 0) {
+    // ボス（大型）
+    enemies.push({ x: 30 * CELL_SIZE, y: 40 * CELL_SIZE, vx: baseSpeed * 0.7, vy: baseSpeed * 0.8, r: 15, type: 'BOSS', color: '#ef4444', name: 'ギガボム' });
+    activeGimmicks.push("大型ボス出現");
+  } else {
+    // スピード型
+    enemies.push({ x: 30 * CELL_SIZE, y: 30 * CELL_SIZE, vx: baseSpeed, vy: baseSpeed * 0.8, r: 8, type: 'NORMAL', color: '#f43f5e', name: 'スライム' });
+  }
+
+  // 敵2: ステージ3以上で追加
+  if (stg >= 3) {
+    enemies.push({ x: 45 * CELL_SIZE, y: 55 * CELL_SIZE, vx: -baseSpeed * 0.85, vy: baseSpeed * 0.95, r: 7, type: 'FAST', color: '#a855f7', name: 'コメット' });
+  }
+
+  // 敵3: ステージ7以上で追加（最大3体）
+  if (stg >= 7) {
+    enemies.push({ x: 20 * CELL_SIZE, y: 60 * CELL_SIZE, vx: baseSpeed * 0.9, vy: -baseSpeed * 0.8, r: 8, type: 'NORMAL', color: '#38bdf8', name: 'パルサー' });
+  }
+
+  // アイテムの配置（1つの面に1〜2個厳選して配置）
+  // 候補: SPEED_UP, SPEED_DOWN, FREEZE, BOMB, HEART, SHIELD
+  const allItemTypes = [
+    { type: 'SPEED_UP', icon: '⚡', name: 'スピードUP' },
+    { type: 'SPEED_DOWN', icon: '🐌', name: 'スピードダウン' },
+    { type: 'FREEZE', icon: '❄', name: '敵氷結ストップ' },
+    { type: 'BOMB', icon: '💣', name: '敵撃破ボム' },
+    { type: 'HEART', icon: '💖', name: 'ライフ回復' },
+    { type: 'SHIELD', icon: '🛡', name: '無敵バリア' }
+  ];
+
+  // ステージに応じて2種類選択
+  const it1 = allItemTypes[(stg) % allItemTypes.length];
+  const it2 = allItemTypes[(stg + 3) % allItemTypes.length];
+  
+  // 安全なEMPTY位置に配置
+  const findEmptyCell = () => {
+    for (let attempts = 0; attempts < 100; attempts++) {
+      const rx = 5 + Math.floor(Math.random() * (GW - 10));
+      const ry = 5 + Math.floor(Math.random() * (GH - 10));
+      if (grid[ry * GW + rx] === EMPTY) return { gx: rx, gy: ry };
+    }
+    return { gx: 30, gy: 50 };
+  };
+
+  const p1 = findEmptyCell();
+  items.push({ gx: p1.gx, gy: p1.gy, type: it1.type, icon: it1.icon, name: it1.name });
+
+  if (stg >= 2) {
+    const p2 = findEmptyCell();
+    items.push({ gx: p2.gx, gy: p2.gy, type: it2.type, icon: it2.icon, name: it2.name });
   }
 
   player.vx = 0; player.vy = 0;
@@ -541,44 +499,39 @@ function initStage(stg) {
 
 function updateStats() {
   let claimedCount = 0;
+  let totalValid = 0;
   for (let i = 0; i < GW * GH; i++) {
+    if (grid[i] !== ROCK) totalValid++;
     if (grid[i] === CLAIMED) claimedCount++;
   }
-  currentAreaPercent = Math.floor((claimedCount / (GW * GH)) * 100);
+  currentAreaPercent = Math.floor((claimedCount / totalValid) * 100);
   areaDisp.textContent = `${currentAreaPercent}%`;
-  stageDisp.textContent = `${currentStage} / ${MAX_STAGE}`;
+  stageDisp.textContent = `STAGE ${currentStage}`;
   lifeDisp.textContent = '❤'.repeat(Math.max(0, lives));
   enemyDisp.textContent = `👾×${enemies.length}`;
 }
 
-// 囲い込み処理＆敵撃破判定 (Flood Fill)
+// 囲い込み処理 (Flood Fill)
 function fillEnclosedArea() {
-  // TRAIL を一時的にブロック壁としてマーク
-  player.trail.forEach(pt => {
-    grid[pt.y * GW + pt.x] = CLAIMED;
-  });
+  // TRAIL を一時的に CLAIMED としてマーク
+  player.trail.forEach(pt => { grid[pt.y * GW + pt.x] = CLAIMED; });
 
-  // 敵の現在位置から到達可能なEMPTYセルを探索
   const visited = new Uint8Array(GW * GH);
   const queue = [];
-
-  // 各敵の生存判定
   const survivingEnemies = [];
+
+  // 各敵のいるマスから探索
   enemies.forEach(e => {
     const egx = Math.max(0, Math.min(GW - 1, Math.floor(e.x / CELL_SIZE)));
     const egy = Math.max(0, Math.min(GH - 1, Math.floor(e.y / CELL_SIZE)));
     const idx = egy * GW + egx;
 
-    // もし敵がいるマスがCLAIMED内に入り込んでしまっていた場合、または孤立小部屋に囲まれた場合
-    // ここで小部屋の広さを測る
     if (grid[idx] === CLAIMED) {
-      // 囲まれて圧殺
+      // 囲まれて圧死
       sfx.playKill();
       showBanner(`【撃破!!】${e.name} を囲んで倒した！`, '#f43f5e');
       return;
     }
-
-    // 敵が存在するEMPTY空間を探索キューに投入
     if (visited[idx] === 0) {
       visited[idx] = 1;
       queue.push(egx, egy);
@@ -587,11 +540,9 @@ function fillEnclosedArea() {
   });
 
   let head = 0;
-  let reachableEmptyCount = 0;
   while(head < queue.length) {
     const qx = queue[head++];
     const qy = queue[head++];
-    reachableEmptyCount++;
 
     const dirs = [[1,0], [-1,0], [0,1], [0,-1]];
     for (let i = 0; i < 4; i++) {
@@ -599,6 +550,7 @@ function fillEnclosedArea() {
       const ny = qy + dirs[i][1];
       if (nx >= 0 && nx < GW && ny >= 0 && ny < GH) {
         const nIdx = ny * GW + nx;
+        // ROCK や CLAIMED は通れない
         if (grid[nIdx] === EMPTY && visited[nIdx] === 0) {
           visited[nIdx] = 1;
           queue.push(nx, ny);
@@ -607,19 +559,45 @@ function fillEnclosedArea() {
     }
   }
 
-  // 敵が到達できない全EMPTYセルをCLAIMEDとして領土化！
-  let newlyClaimedCount = 0;
+  // 敵の到達しない EMPTY セルを CLAIMED に変換
+  // ※ROCKはそのまま残る（囲まれれば消える処理：周囲がすべてCLAIMEDなら消滅）
   for (let y = 0; y < GH; y++) {
     for (let x = 0; x < GW; x++) {
       const idx = y * GW + x;
       if (grid[idx] === EMPTY && visited[idx] === 0) {
         grid[idx] = CLAIMED;
-        newlyClaimedCount++;
       }
     }
   }
 
-  // 敵が小部屋に閉じ込められて圧死したかどうかの判定（もし敵のいる領域が極小なら撃破）
+  // 岩（ROCK）の消滅判定：岩の周囲に EMPTY が存在しなければ岩を領土に変換！
+  let rocksCleared = false;
+  for (let y = 0; y < GH; y++) {
+    for (let x = 0; x < GW; x++) {
+      const idx = y * GW + x;
+      if (grid[idx] === ROCK) {
+        // 周囲4方向に未開拓EMPTYがないかチェック
+        let hasEmptyNeighbor = false;
+        const dirs = [[1,0], [-1,0], [0,1], [0,-1]];
+        for (let i = 0; i < 4; i++) {
+          const nx = x + dirs[i][0];
+          const ny = y + dirs[i][1];
+          if (nx >= 0 && nx < GW && ny >= 0 && ny < GH) {
+            if (grid[ny * GW + nx] === EMPTY) { hasEmptyNeighbor = true; break; }
+          }
+        }
+        if (!hasEmptyNeighbor) {
+          grid[idx] = CLAIMED;
+          rocksCleared = true;
+        }
+      }
+    }
+  }
+  if (rocksCleared) {
+    showBanner("🪨 邪魔な岩を完全包囲して粉砕！", "#38bdf8");
+  }
+
+  // 敵の完全圧殺チェック
   const finalEnemies = [];
   survivingEnemies.forEach(e => {
     const egx = Math.max(0, Math.min(GW - 1, Math.floor(e.x / CELL_SIZE)));
@@ -633,11 +611,11 @@ function fillEnclosedArea() {
   });
   enemies = finalEnemies;
 
-  // アイテムの囲い込み取得判定
+  // アイテム取得判定
   items = items.filter(it => {
     if (grid[it.gy * GW + it.gx] === CLAIMED) {
-      applyItem(it.type);
-      return false; // 取得済み
+      applyItem(it);
+      return false;
     }
     return true;
   });
@@ -647,7 +625,7 @@ function fillEnclosedArea() {
   updateStats();
 
   if (enemies.length === 0) {
-    showBanner("エリアの全敵を全滅させた！ボーナス達成！", "#38bdf8");
+    showBanner("👾 敵を全滅！ステージ制覇！", "#38bdf8");
   }
 
   if (currentAreaPercent >= stageTargetPercent || enemies.length === 0) {
@@ -655,23 +633,39 @@ function fillEnclosedArea() {
   }
 }
 
-function applyItem(type) {
-  sfx.playItem();
-  if (type === 'HEART') {
-    lives = Math.min(5, lives + 1);
-    showBanner("❤ ライフが1つ回復した！", "#f43f5e");
-  } else if (type === 'SLOW') {
-    enemies.forEach(e => { e.vx *= 0.5; e.vy *= 0.5; });
+// アイテム効果
+function applyItem(it) {
+  if (it.type === 'SPEED_UP') {
+    sfx.playBuff();
+    player.speedDelay = 1; // 2倍速
+    setTimeout(() => { player.speedDelay = player.baseDelay; }, 7000);
+    showBanner("⚡ スピードアップ！(7秒間)", "#facc15");
+  } else if (it.type === 'SPEED_DOWN') {
+    sfx.playDebuff();
+    player.speedDelay = 3; // 減速
+    setTimeout(() => { player.speedDelay = player.baseDelay; }, 6000);
+    showBanner("🐌 スピードダウン！足が重い…", "#94a3b8");
+  } else if (it.type === 'FREEZE') {
+    sfx.playBuff();
+    enemies.forEach(e => { e.savedVx = e.vx; e.savedVy = e.vy; e.vx = 0; e.vy = 0; });
     setTimeout(() => {
-      enemies.forEach(e => { e.vx *= 2.0; e.vy *= 2.0; });
-    }, 6000);
-    showBanner("⏳ 敵の動きが6秒間スローダウン！", "#38bdf8");
-  } else if (type === 'BOMB') {
+      enemies.forEach(e => { e.vx = e.savedVx || 1.5; e.vy = e.savedVy || 1.5; });
+    }, 4500);
+    showBanner("❄ 敵が4.5秒間氷結完全停止！", "#38bdf8");
+  } else if (it.type === 'BOMB') {
+    sfx.playKill();
     if (enemies.length > 0) {
       const dead = enemies.pop();
-      sfx.playKill();
-      showBanner(`💣 ボム発動！ ${dead.name} を爆破！`, "#f59e0b");
+      showBanner(`💣 ボム爆発！ ${dead.name} を粉砕！`, "#f97316");
     }
+  } else if (it.type === 'HEART') {
+    sfx.playBuff();
+    lives = Math.min(5, lives + 1);
+    showBanner("💖 ライフが1つ回復した！", "#f43f5e");
+  } else if (it.type === 'SHIELD') {
+    sfx.playBuff();
+    player.invincibleTimer = 300; // 約5秒間無敵
+    showBanner("🛡 バリア展開！5秒間敵の攻撃を無効化！", "#a855f7");
   }
   updateStats();
 }
@@ -679,24 +673,20 @@ function applyItem(type) {
 function handleStageClear() {
   isPlaying = false;
   sfx.playClear();
-  if (currentStage < MAX_STAGE) {
-    ovTitle.textContent = `ステージ ${currentStage} クリア！`;
-    ovDesc.textContent = `占有率 ${currentAreaPercent}% 達成！
-次は『${STAGE_THEMES[currentStage+1].name}』です。`;
-    startBtn.textContent = '次のステージへ進む';
-    overlay.style.display = 'flex';
-    currentStage++;
-  } else {
-    ovTitle.textContent = '🎉 全ステージ完全制覇！ 🎉';
-    ovDesc.textContent = `おめでとうございます！すべての領土と世界を塗りつくしました！`;
-    startBtn.textContent = 'もう一度最初から遊ぶ';
-    overlay.style.display = 'flex';
-    currentStage = 1;
-    lives = 3;
-  }
+  currentStage++;
+  if (currentStage > highestStage) highestStage = currentStage;
+
+  const nextTheme = THEMES[(currentStage - 1) % THEMES.length];
+  ovTitle.textContent = `🎉 STAGE ${currentStage - 1} クリア！`;
+  ovDesc.textContent = `クリア面数: ${currentStage - 1} 面達成！
+次は『STAGE ${currentStage}: ${nextTheme.name}』です。`;
+  startBtn.textContent = `STAGE ${currentStage} へ進む`;
+  overlay.style.display = 'flex';
 }
 
 function handleDeath() {
+  if (player.invincibleTimer > 0) return; // 無敵中
+
   sfx.playHit();
   lives--;
   updateStats();
@@ -709,9 +699,12 @@ function handleDeath() {
   if (lives <= 0) {
     isPlaying = false;
     ovTitle.textContent = 'ゲームオーバー';
-    ovDesc.textContent = `敵に線を捕まってしまいました。リトライして再挑戦！`;
-    startBtn.textContent = 'このステージをやり直す';
+    ovDesc.textContent = `到達ステージ: STAGE ${currentStage}
+クリア面数: ${currentStage - 1} 面
+再挑戦してハイスコアを目指そう！`;
+    startBtn.textContent = 'STAGE 1 から再挑戦';
     overlay.style.display = 'flex';
+    currentStage = 1;
     lives = 3;
   } else {
     // 最寄りの安全地帯へ復帰
@@ -736,6 +729,8 @@ function handleDeath() {
 }
 
 function updatePlayer() {
+  if (player.invincibleTimer > 0) player.invincibleTimer--;
+
   player.speedCounter++;
   if (player.speedCounter % player.speedDelay !== 0) return;
 
@@ -754,6 +749,14 @@ function updatePlayer() {
   }
 
   const target = grid[ny * GW + nx];
+
+  // 岩（ROCK）には突っ込めない（壁としてストップ）
+  if (target === ROCK) {
+    player.vx = 0; player.vy = 0;
+    player.nextVx = 0; player.nextVy = 0;
+    return;
+  }
+
   if (target === TRAIL) {
     handleDeath();
     return;
@@ -777,9 +780,10 @@ function updatePlayer() {
 
 function updateEnemies() {
   enemies.forEach(e => {
-    // ボス特有の蛇行や変速挙動
+    if (e.vx === 0 && e.vy === 0) return; // 氷結中
+
     if (e.type === 'BOUNCE') {
-      e.vy += Math.sin(Date.now() * 0.005) * 0.05;
+      e.vy += Math.sin(Date.now() * 0.005) * 0.04;
     }
 
     e.x += e.vx;
@@ -788,11 +792,9 @@ function updateEnemies() {
     const gx = Math.floor(e.x / CELL_SIZE);
     const gy = Math.floor(e.y / CELL_SIZE);
 
-    // 外枠バウンド
     if (e.x - e.r < 0 || e.x + e.r >= GW * CELL_SIZE) e.vx *= -1;
     if (e.y - e.r < 0 || e.y + e.r >= GH * CELL_SIZE) e.vy *= -1;
 
-    // 領土ブロックとの跳ね返り
     const checkRadius = Math.ceil(e.r / CELL_SIZE);
     for (let dy = -checkRadius; dy <= checkRadius; dy++) {
       for (let dx = -checkRadius; dx <= checkRadius; dx++) {
@@ -804,7 +806,8 @@ function updateEnemies() {
           const cellCenterY = cy * CELL_SIZE + CELL_SIZE / 2;
           const dist = Math.hypot(e.x - cellCenterX, e.y - cellCenterY);
 
-          if (cell === CLAIMED && dist < e.r + CELL_SIZE / 2) {
+          // CLAIMED または ROCK でバウンド反射
+          if ((cell === CLAIMED || cell === ROCK) && dist < e.r + CELL_SIZE / 2) {
             if (Math.abs(e.x - cellCenterX) > Math.abs(e.y - cellCenterY)) {
               e.vx *= -1; e.x += e.vx * 1.2;
             } else {
@@ -829,19 +832,23 @@ function updateEnemies() {
 }
 
 function draw() {
-  const theme = STAGE_THEMES[currentStage];
+  const theme = THEMES[(currentStage - 1) % THEMES.length];
   ctx.fillStyle = theme.darkBg;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  // 1. グリッド描画 (領土・トレイル)
+  // 1. グリッド描画
   for (let y = 0; y < GH; y++) {
     for (let x = 0; x < GW; x++) {
       const c = grid[y * GW + x];
       if (c === CLAIMED) {
-        ctx.fillStyle = theme.pixelArt(x, y);
+        ctx.fillStyle = theme.landCol(x, y);
         ctx.fillRect(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE);
       } else if (c === TRAIL) {
-        ctx.fillStyle = '#22c55e'; // ネオングリーン線
+        ctx.fillStyle = '#22c55e';
+        ctx.fillRect(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+      } else if (c === ROCK) {
+        // 岩：漆黒の鉱石ブロック
+        ctx.fillStyle = (x + y) % 2 === 0 ? '#475569' : '#334155';
         ctx.fillRect(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE);
       }
     }
@@ -854,12 +861,10 @@ function draw() {
     ctx.font = '12px sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    if (it.type === 'HEART') ctx.fillText('💖', ix, iy);
-    else if (it.type === 'SLOW') ctx.fillText('⏳', ix, iy);
-    else if (it.type === 'BOMB') ctx.fillText('💣', ix, iy);
+    ctx.fillText(it.icon, ix, iy);
   });
 
-  // 3. 敵の描画 (表情やトゲがついたモンスタードット)
+  // 3. 敵描画
   enemies.forEach(e => {
     ctx.save();
     ctx.translate(e.x, e.y);
@@ -871,7 +876,14 @@ function draw() {
     ctx.fill();
     ctx.shadowBlur = 0;
 
-    // 目と怒り眉
+    // 氷結エフェクト
+    if (e.vx === 0 && e.vy === 0) {
+      ctx.strokeStyle = '#38bdf8';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    }
+
+    // 目
     ctx.fillStyle = '#ffffff';
     ctx.beginPath();
     ctx.arc(-e.r * 0.35, -e.r * 0.15, e.r * 0.28, 0, Math.PI*2);
@@ -883,7 +895,6 @@ function draw() {
     ctx.arc(e.r * 0.4, -e.r * 0.15, e.r * 0.14, 0, Math.PI*2);
     ctx.fill();
 
-    // ボスの王冠
     if (e.type === 'BOSS') {
       ctx.fillStyle = '#fbbf24';
       ctx.beginPath();
@@ -898,12 +909,15 @@ function draw() {
     ctx.restore();
   });
 
-  // 4. プレイヤー描画 (探検者ドット)
+  // 4. プレイヤー描画
   const px = player.gx * CELL_SIZE;
   const py = player.gy * CELL_SIZE;
-  ctx.fillStyle = '#fde047';
-  ctx.shadowBlur = 10;
-  ctx.shadowColor = '#facc15';
+  ctx.fillStyle = player.invincibleTimer > 0 ? '#ec4899' : '#fde047';
+  if (player.invincibleTimer > 0) {
+    ctx.shadowBlur = 12; ctx.shadowColor = '#ec4899';
+  } else {
+    ctx.shadowBlur = 8; ctx.shadowColor = '#facc15';
+  }
   ctx.fillRect(px - 1, py - 1, CELL_SIZE + 2, CELL_SIZE + 2);
   ctx.shadowBlur = 0;
   ctx.fillStyle = '#1e293b';
