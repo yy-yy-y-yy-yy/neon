@@ -7,7 +7,7 @@
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-user-select: none; }
   body {
-    background-color: #080c14;
+    background-color: #050811;
     color: #f1f5f9;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Hiragino Kaku Gothic ProN", Meiryo, sans-serif;
     display: flex;
@@ -15,21 +15,22 @@
     align-items: center;
     justify-content: space-between;
     min-height: 100vh;
-    padding: 8px 10px env(safe-area-inset-bottom);
+    padding: 8px 10px calc(8px + env(safe-area-inset-bottom));
     touch-action: none;
     overflow: hidden;
   }
   header {
     width: 100%;
-    max-width: 440px;
+    max-width: 480px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 6px 12px;
-    background: #111827;
+    padding: 6px 14px;
+    background: #0f172a;
     border-radius: 12px;
-    border: 1px solid #1f2937;
+    border: 1px solid #1e293b;
     box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+    flex-shrink: 0;
   }
   .stat-col { display: flex; flex-direction: column; align-items: center; }
   .stat-label { font-size: 10px; color: #94a3b8; font-weight: 600; text-transform: uppercase; }
@@ -39,23 +40,23 @@
   #game-wrapper {
     position: relative;
     width: 100%;
-    max-width: 440px;
+    max-width: 480px;
     flex-grow: 1;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin: 6px 0;
+    margin: 8px 0;
   }
   #canvas-container {
     position: relative;
     width: 100%;
     aspect-ratio: 3 / 4;
-    max-height: 68vh;
-    background: #030712;
+    max-height: 84vh; /* 操作バー削除により画面を大幅拡大 */
+    background: #020617;
     border: 2px solid #334155;
-    border-radius: 14px;
+    border-radius: 16px;
     overflow: hidden;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.7);
+    box-shadow: 0 12px 36px rgba(0,0,0,0.8);
   }
   canvas {
     width: 100%;
@@ -73,16 +74,16 @@
     justify-content: center;
     padding: 24px;
     text-align: center;
-    backdrop-filter: blur(5px);
+    backdrop-filter: blur(6px);
   }
   #overlay h2 { font-size: 24px; color: #38bdf8; margin-bottom: 8px; font-weight: 900; }
-  #overlay p { font-size: 13px; color: #cbd5e1; margin-bottom: 18px; line-height: 1.6; }
+  #overlay p { font-size: 13px; color: #cbd5e1; margin-bottom: 18px; line-height: 1.6; white-space: pre-line; }
   .btn {
     background: linear-gradient(135deg, #0284c7, #2563eb);
     color: #fff;
     font-size: 16px;
     font-weight: 800;
-    padding: 12px 32px;
+    padding: 12px 34px;
     border: none;
     border-radius: 28px;
     cursor: pointer;
@@ -90,32 +91,6 @@
     transition: transform 0.1s;
   }
   .btn:active { transform: scale(0.95); }
-
-  #controls {
-    display: grid;
-    grid-template-columns: repeat(3, 62px);
-    grid-template-rows: repeat(2, 46px);
-    gap: 6px;
-    margin-bottom: 4px;
-  }
-  .d-btn {
-    background: #1f2937;
-    border: 2px solid #374151;
-    border-radius: 12px;
-    color: #f3f4f6;
-    font-size: 20px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    box-shadow: 0 3px 6px rgba(0,0,0,0.4);
-    touch-action: manipulation;
-  }
-  .d-btn:active, .d-btn.active { background: #0284c7; border-color: #38bdf8; color: #fff; transform: translateY(2px); }
-  #d-up { grid-column: 2; grid-row: 1; }
-  #d-left { grid-column: 1; grid-row: 2; }
-  #d-down { grid-column: 2; grid-row: 2; }
-  #d-right { grid-column: 3; grid-row: 2; }
 
   .msg-banner {
     position: absolute;
@@ -163,17 +138,12 @@
     <div id="msg-banner" class="msg-banner">敵を撃破！</div>
     <div id="overlay">
       <h2 id="ov-title">QIX LAND INFINITE</h2>
-      <p id="ov-desc">未開拓ゾーンを囲んで陣地を広げよう！<br>敵を小部屋に囲い込めば撃破可能！<br>邪魔な岩は完全に包囲して粉砕せよ！</p>
+      <p id="ov-desc">画面をスワイプ（PCは矢印キー）して探検！
+自分の線にぶつかっても死なずに壁として止まります。
+敵を囲い込んで倒し、無限ステージを制覇せよ！</p>
       <button class="btn" id="start-btn">スタート</button>
     </div>
   </div>
-</div>
-
-<div id="controls">
-  <button class="d-btn" id="d-up">▲</button>
-  <button class="d-btn" id="d-left">◀</button>
-  <button class="d-btn" id="d-down">▼</button>
-  <button class="d-btn" id="d-right">▶</button>
 </div>
 
 <script>
@@ -242,10 +212,10 @@ const GW = 60;
 const GH = 80;
 const CELL_SIZE = 5;
 
-const EMPTY = 0;   // 未開拓（敵が動き回る海）
-const CLAIMED = 1; // 領土（プレイヤーの安全地帯）
+const EMPTY = 0;   // 未開拓
+const CLAIMED = 1; // 領土
 const TRAIL = 2;   // 引いている線
-const ROCK = 3;    // 岩（障害物：非領土。完全包囲されるまで領土化しない）
+const ROCK = 3;    // 岩（障害物）
 
 let grid = new Uint8Array(GW * GH);
 let currentStage = 1;
@@ -293,6 +263,7 @@ function showBanner(text, color="#facc15") {
   setTimeout(() => { msgBanner.style.opacity = '0'; }, 1800);
 }
 
+// 8種の鮮やかなピクセルアートテーマ
 const THEMES = [
   { name: "サイバーグリッド", darkBg: "#050814", landCol: (x, y) => ((x ^ y) % 6 === 0 ? "#38bdf8" : (x % 3 === 0 ? "#0369a1" : "#0284c7")) },
   { name: "日本列島グリーン", darkBg: "#031024", landCol: (x, y) => ((x*7 + y*13)%20 === 0 ? "#fb7185" : ((x*7 + y*13)%20 < 8 ? "#22c55e" : "#15803d")) },
@@ -304,6 +275,7 @@ const THEMES = [
   { name: "ネオントウキョウ", darkBg: "#160517", landCol: (x, y) => ((x*3 + y)%8 === 0 ? "#f43f5e" : ((x^y)%5 === 0 ? "#e879f9" : "#86198f")) }
 ];
 
+// 日本地図プロット
 function plotJapanMap() {
   const setCell = (x, y) => { if (x >= 0 && x < GW && y >= 0 && y < GH) grid[y * GW + x] = CLAIMED; };
   const fillEllipse = (cx, cy, rx, ry, tilt=0) => {
@@ -317,18 +289,19 @@ function plotJapanMap() {
       }
     }
   };
-  fillEllipse(44, 15, 8, 5, 0.2);
+  fillEllipse(44, 15, 8, 5, 0.2); // 北海道
   fillEllipse(40, 20, 4, 3, -0.5);
-  fillEllipse(41, 27, 4, 6, -0.1);
-  fillEllipse(39, 39, 6, 5, 0.3);
-  fillEllipse(33, 43, 6, 6, -0.4);
-  fillEllipse(27, 49, 4, 5, 0.2);
-  fillEllipse(19, 49, 7, 3, -0.2);
-  fillEllipse(22, 57, 5, 3, -0.3);
-  fillEllipse(14, 59, 4, 6, 0.2);
-  fillEllipse(8, 72, 2, 2, 0.5);
+  fillEllipse(41, 27, 4, 6, -0.1); // 東北
+  fillEllipse(39, 39, 6, 5, 0.3);  // 関東
+  fillEllipse(33, 43, 6, 6, -0.4); // 中部
+  fillEllipse(27, 49, 4, 5, 0.2);  // 近畿
+  fillEllipse(19, 49, 7, 3, -0.2); // 中国
+  fillEllipse(22, 57, 5, 3, -0.3); // 四国
+  fillEllipse(14, 59, 4, 6, 0.2);  // 九州
+  fillEllipse(8, 72, 2, 2, 0.5);   // 沖縄
 }
 
+// 世界地図プロット
 function plotWorldMap() {
   const fillBlob = (cx, cy, rx, ry, tilt=0) => {
     const cos = Math.cos(tilt), sin = Math.sin(tilt);
@@ -343,23 +316,93 @@ function plotWorldMap() {
       }
     }
   };
-  fillBlob(15, 20, 8, 7, 0.2);
+  fillBlob(15, 20, 8, 7, 0.2);  // 北米
   fillBlob(9, 14, 5, 4, -0.2);
-  fillBlob(21, 48, 6, 11, 0.3);
-  fillBlob(34, 19, 5, 4, 0.1);
-  fillBlob(35, 38, 7, 10, 0.1);
-  fillBlob(45, 20, 11, 7, -0.1);
-  fillBlob(50, 56, 6, 5, 0);
+  fillBlob(21, 48, 6, 11, 0.3); // 南米
+  fillBlob(34, 19, 5, 4, 0.1);  // 欧州
+  fillBlob(35, 38, 7, 10, 0.1); // アフリカ
+  fillBlob(45, 20, 11, 7, -0.1);// ユーラシア
+  fillBlob(50, 56, 6, 5, 0);    // 豪州
 }
 
-// 岩を「未開拓エリア（EMPTY）の中だけ」に独立して配置
-// CLAIMED（陣地）の周囲3マス以内には絶対に置かない
+// 8パターンの地形＆スタート地点
+function setupTerrainAndSpawn(type) {
+  if (type === 0) {
+    // 1. クラシック外周枠（左上スタート）
+    for (let x = 0; x < GW; x++) {
+      for (let y = 0; y < GH; y++) {
+        if (x < 2 || x >= GW - 2 || y < 2 || y >= GH - 2) grid[y * GW + x] = CLAIMED;
+      }
+    }
+    return { x: 2, y: 2 };
+  } else if (type === 1) {
+    // 2. 日本列島（本州中央・東京付近スタート）
+    plotJapanMap();
+    return { x: 39, y: 39 };
+  } else if (type === 2) {
+    // 3. センター円形孤島（真ん中スタート）
+    const cx = GW / 2, cy = GH / 2;
+    for (let y = 0; y < GH; y++) {
+      for (let x = 0; x < GW; x++) {
+        if (Math.hypot(x - cx, y - cy) <= 10) grid[y * GW + x] = CLAIMED;
+      }
+    }
+    return { x: Math.floor(cx), y: Math.floor(cy) };
+  } else if (type === 3) {
+    // 4. 世界地図（欧州大西洋スタート）
+    plotWorldMap();
+    return { x: 35, y: 20 };
+  } else if (type === 4) {
+    // 5. クロス型ハイウェイ（十字路の中心スタート）
+    for (let y = 0; y < GH; y++) {
+      for (let x = 0; x < GW; x++) {
+        if (Math.abs(x - GW/2) <= 3 || Math.abs(y - GH/2) <= 3) {
+          grid[y * GW + x] = CLAIMED;
+        }
+      }
+    }
+    return { x: Math.floor(GW/2), y: Math.floor(GH/2) };
+  } else if (type === 5) {
+    // 6. 二重リング要塞（外リング上部スタート）
+    const cx = GW/2, cy = GH/2;
+    for (let y = 0; y < GH; y++) {
+      for (let x = 0; x < GW; x++) {
+        const d = Math.hypot(x - cx, y - cy);
+        if (d <= 5 || (d >= 22 && d <= 26)) {
+          grid[y * GW + x] = CLAIMED;
+        }
+      }
+    }
+    return { x: Math.floor(cx), y: Math.floor(cy - 24) };
+  } else if (type === 6) {
+    // 7. 双子島・列島海峡（西島スタート）
+    for (let y = 0; y < GH; y++) {
+      for (let x = 0; x < GW; x++) {
+        if (Math.hypot(x - 18, y - GH/2) <= 11 || Math.hypot(x - 42, y - GH/2) <= 11) {
+          grid[y * GW + x] = CLAIMED;
+        }
+      }
+    }
+    return { x: 18, y: Math.floor(GH/2) };
+  } else {
+    // 8. 四隅の砦（左上砦スタート）
+    for (let y = 0; y < GH; y++) {
+      for (let x = 0; x < GW; x++) {
+        if ((x < 11 && y < 11) || (x > GW - 12 && y < 11) || (x < 11 && y > GH - 12) || (x > GW - 12 && y > GH - 12)) {
+          grid[y * GW + x] = CLAIMED;
+        }
+      }
+    }
+    return { x: 5, y: 5 };
+  }
+}
+
+// 岩を「未開拓エリア（EMPTY）の中だけ」に独立配置（陣地周囲3マスは避ける）
 function placeRockSafe(cx, cy, r) {
   for (let y = cy - r - 1; y <= cy + r + 1; y++) {
     for (let x = cx - r - 1; x <= cx + r + 1; x++) {
       if (Math.hypot(x - cx, y - cy) <= r) {
         if (x >= 4 && x < GW - 4 && y >= 4 && y < GH - 4) {
-          // 近くにCLAIMEDがないかチェック（陣地とくっつくのを防ぐ）
           let nearClaimed = false;
           for (let dy = -3; dy <= 3; dy++) {
             for (let dx = -3; dx <= 3; dx++) {
@@ -379,8 +422,7 @@ function placeRockSafe(cx, cy, r) {
   }
 }
 
-// 敵を配置可能な「安全な未開拓（EMPTY）空間」を探索
-// 陣地や岩から十分に離れた広い空間にスポーンさせる
+// 敵を安全なEMPTY空間に配置（スタック完全防止）
 function findSafeEnemySpawn(radius) {
   for (let attempt = 0; attempt < 500; attempt++) {
     const rx = radius + 3 + Math.random() * (GW * CELL_SIZE - (radius + 3) * 2);
@@ -397,7 +439,6 @@ function findSafeEnemySpawn(radius) {
         const cy = egy + dy;
         if (cx >= 0 && cx < GW && cy >= 0 && cy < GH) {
           const cell = grid[cy * GW + cx];
-          // 陣地(CLAIMED)または岩(ROCK)が敵の半径＋マージン内にある場合は却下
           if (cell === CLAIMED || cell === ROCK) {
             const cellCenterX = cx * CELL_SIZE + CELL_SIZE / 2;
             const cellCenterY = cy * CELL_SIZE + CELL_SIZE / 2;
@@ -415,7 +456,6 @@ function findSafeEnemySpawn(radius) {
       return { x: rx, y: ry };
     }
   }
-  // 万一見つからなかった場合は画面の開けている未開拓セルを探す
   for (let y = 10; y < GH - 10; y++) {
     for (let x = 10; x < GW - 10; x++) {
       if (grid[y * GW + x] === EMPTY) {
@@ -435,51 +475,24 @@ function initStage(stg) {
   stageTargetPercent = Math.min(80, 70 + Math.floor(stg / 3));
   targetDisp.textContent = `${stageTargetPercent}%`;
 
-  const mapType = (stg - 1) % 5;
-  if (mapType === 0) {
-    for (let x = 0; x < GW; x++) {
-      for (let y = 0; y < GH; y++) {
-        if (x < 2 || x >= GW - 2 || y < 2 || y >= GH - 2) grid[y * GW + x] = CLAIMED;
-      }
-    }
-    player.gx = 2; player.gy = 2;
-  } else if (mapType === 1) {
-    plotJapanMap();
-    player.gx = 39; player.gy = 39; // 本州
-  } else if (mapType === 2) {
-    const cx = GW / 2, cy = GH / 2;
-    for (let y = 0; y < GH; y++) {
-      for (let x = 0; x < GW; x++) {
-        if (Math.hypot(x - cx, y - cy) <= 10) grid[y * GW + x] = CLAIMED;
-      }
-    }
-    player.gx = Math.floor(cx); player.gy = Math.floor(cy);
-  } else if (mapType === 3) {
-    plotWorldMap();
-    player.gx = 35; player.gy = 20; // 欧州
-  } else {
-    for (let y = 0; y < GH; y++) {
-      for (let x = 0; x < GW; x++) {
-        if ((x < 10 && y < 10) || (x > GW - 10 && y < 10) || (x < 10 && y > GH - 10) || (x > GW - 10 && y > GH - 10)) {
-          grid[y * GW + x] = CLAIMED;
-        }
-      }
-    }
-    player.gx = 5; player.gy = 5;
-  }
+  // 8種類の地形から選択
+  const mapType = (stg - 1) % 8;
+  const pSpawn = setupTerrainAndSpawn(mapType);
 
-  spawnPoint.x = player.gx;
-  spawnPoint.y = player.gy;
+  player.gx = pSpawn.x;
+  player.gy = pSpawn.y;
+  spawnPoint.x = pSpawn.x;
+  spawnPoint.y = pSpawn.y;
 
-  // 1. 岩の安全配置（陣地と接触しないようEMPTYの真ん中に置く）
+  // 岩の安全配置
   if (stg >= 2 && mapType !== 1) {
-    placeRockSafe(Math.floor(GW * 0.35), Math.floor(GH * 0.4), 3);
-    if (stg >= 6) {
+    placeRockSafe(Math.floor(GW * 0.35), Math.floor(GH * 0.35), 3);
+    if (stg >= 5) {
       placeRockSafe(Math.floor(GW * 0.65), Math.floor(GH * 0.65), 3);
     }
   }
 
-  // 2. 敵の安全生成（陣地や岩に絶対に埋まらない位置を計算して配置）
+  // 敵の生成
   enemies = [];
   const baseSpeed = 1.6 + Math.min(1.4, stg * 0.12);
 
@@ -502,7 +515,7 @@ function initStage(stg) {
     enemies.push({ x: spawn3.x, y: spawn3.y, vx: baseSpeed * 0.9, vy: -baseSpeed * 0.8, r: 8, type: 'NORMAL', color: '#38bdf8', name: 'パルサー' });
   }
 
-  // 3. アイテムの配置
+  // アイテム配置
   const allItemTypes = [
     { type: 'SPEED_UP', icon: '⚡', name: 'スピードUP' },
     { type: 'SPEED_DOWN', icon: '🐌', name: 'スピードダウン' },
@@ -539,12 +552,10 @@ function initStage(stg) {
   updateStats();
 }
 
-// 領土率計算：岩（ROCK）は絶対に領土（CLAIMED）としてカウントしない
 function updateStats() {
   let claimedCount = 0;
   let totalStageCells = 0;
   for (let i = 0; i < GW * GH; i++) {
-    // 全体母数はROCK以外のセル数
     if (grid[i] !== ROCK) {
       totalStageCells++;
       if (grid[i] === CLAIMED) claimedCount++;
@@ -557,16 +568,13 @@ function updateStats() {
   enemyDisp.textContent = `👾×${enemies.length}`;
 }
 
-// 囲い込み処理 (Flood Fill)
 function fillEnclosedArea() {
-  // 引いた線を一旦 CLAIMED に変換
   player.trail.forEach(pt => { grid[pt.y * GW + pt.x] = CLAIMED; });
 
   const visited = new Uint8Array(GW * GH);
   const queue = [];
   const survivingEnemies = [];
 
-  // 各敵の生存判定
   enemies.forEach(e => {
     const egx = Math.max(0, Math.min(GW - 1, Math.floor(e.x / CELL_SIZE)));
     const egy = Math.max(0, Math.min(GH - 1, Math.floor(e.y / CELL_SIZE)));
@@ -584,7 +592,6 @@ function fillEnclosedArea() {
     survivingEnemies.push(e);
   });
 
-  // 敵のいるエリアから到達可能な EMPTY セルのみを探索
   let head = 0;
   while(head < queue.length) {
     const qx = queue[head++];
@@ -596,7 +603,6 @@ function fillEnclosedArea() {
       const ny = qy + dirs[i][1];
       if (nx >= 0 && nx < GW && ny >= 0 && ny < GH) {
         const nIdx = ny * GW + nx;
-        // ROCK や CLAIMED は通れない壁
         if (grid[nIdx] === EMPTY && visited[nIdx] === 0) {
           visited[nIdx] = 1;
           queue.push(nx, ny);
@@ -605,7 +611,6 @@ function fillEnclosedArea() {
     }
   }
 
-  // 敵の到達しない EMPTY セルのみを CLAIMED に変換（※ROCKは勝手にCLAIMEDにしない）
   for (let y = 0; y < GH; y++) {
     for (let x = 0; x < GW; x++) {
       const idx = y * GW + x;
@@ -615,8 +620,7 @@ function fillEnclosedArea() {
     }
   }
 
-  // 岩（ROCK）の完全包囲判定：
-  // 岩の周囲8方向に EMPTY（未開拓）が1つも残っていない場合のみ、岩が粉砕されて CLAIMED に変わる
+  // 岩の完全包囲粉砕判定
   let rocksCleared = false;
   for (let y = 0; y < GH; y++) {
     for (let x = 0; x < GW; x++) {
@@ -753,7 +757,6 @@ function handleDeath() {
     currentStage = 1;
     lives = 3;
   } else {
-    // 復活処理：絶対に ROCK や EMPTY を踏まない純粋な CLAIMED を探索
     let found = false;
     const searchOriginX = spawnPoint.x;
     const searchOriginY = spawnPoint.y;
@@ -765,7 +768,6 @@ function handleDeath() {
           const nx = searchOriginX + dx;
           const ny = searchOriginY + dy;
           if (nx >= 0 && nx < GW && ny >= 0 && ny < GH) {
-            // ROCK を完全に除外
             if (grid[ny * GW + nx] === CLAIMED) {
               player.gx = nx;
               player.gy = ny;
@@ -807,15 +809,10 @@ function updatePlayer() {
 
   const target = grid[ny * GW + nx];
 
-  // 岩（ROCK）には突っ込めない
-  if (target === ROCK) {
+  // 【重要改善】岩（ROCK）だけでなく、自分の引いている線（TRAIL）も「死なずに突き抜けられない壁」として停止
+  if (target === ROCK || target === TRAIL) {
     player.vx = 0; player.vy = 0;
     player.nextVx = 0; player.nextVy = 0;
-    return;
-  }
-
-  if (target === TRAIL) {
-    handleDeath();
     return;
   }
 
@@ -863,7 +860,6 @@ function updateEnemies() {
           const cellCenterY = cy * CELL_SIZE + CELL_SIZE / 2;
           const dist = Math.hypot(e.x - cellCenterX, e.y - cellCenterY);
 
-          // 領土(CLAIMED)または岩(ROCK)に当たったら確実に反発
           if ((cell === CLAIMED || cell === ROCK) && dist < e.r + CELL_SIZE / 2) {
             if (Math.abs(e.x - cellCenterX) > Math.abs(e.y - cellCenterY)) {
               e.vx *= -1;
@@ -873,6 +869,7 @@ function updateEnemies() {
               e.y += (e.vy > 0 ? 1 : -1) * 1.5;
             }
           }
+          // 敵がトレイル（引いている線）に触れたらプレイヤーミス
           if (cell === TRAIL && dist < e.r + CELL_SIZE / 2) {
             handleDeath();
             return;
@@ -904,10 +901,8 @@ function draw() {
         ctx.fillStyle = '#22c55e';
         ctx.fillRect(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE);
       } else if (c === ROCK) {
-        // 岩：漆黒の鉱物ブロック（領土とは全く異なる独立した質感）
         ctx.fillStyle = (x + y) % 2 === 0 ? '#475569' : '#1e293b';
         ctx.fillRect(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE);
-        // ひび割れ風エフェクト
         if ((x * 3 + y * 7) % 11 === 0) {
           ctx.fillStyle = '#94a3b8';
           ctx.fillRect(x * CELL_SIZE + 1, y * CELL_SIZE + 1, 2, 2);
@@ -991,6 +986,7 @@ function gameLoop() {
 }
 
 function setDirection(x, y) {
+  // 逆方向入力による即反転のみ抑止
   if (player.trail.length > 0) {
     if (x === -player.vx && y === 0) return;
     if (y === -player.vy && x === 0) return;
@@ -1006,38 +1002,19 @@ window.addEventListener('keydown', e => {
   if (['ArrowRight', 'KeyD'].includes(e.code)) { setDirection(1, 0); e.preventDefault(); }
 });
 
-const bindBtn = (id, x, y) => {
-  const el = document.getElementById(id);
-  const trigger = (e) => {
-    e.preventDefault();
-    sfx.init();
-    setDirection(x, y);
-    el.classList.add('active');
-  };
-  const release = () => el.classList.remove('active');
-  el.addEventListener('touchstart', trigger, { passive: false });
-  el.addEventListener('touchend', release);
-  el.addEventListener('mousedown', trigger);
-  el.addEventListener('mouseup', release);
-};
-
-bindBtn('d-up', 0, -1);
-bindBtn('d-down', 0, 1);
-bindBtn('d-left', -1, 0);
-bindBtn('d-right', 1, 0);
-
+// 全画面スワイプ / ドラッグ操作
 let touchStartX = 0, touchStartY = 0;
-canvas.addEventListener('touchstart', e => {
+window.addEventListener('touchstart', e => {
   touchStartX = e.touches[0].clientX;
   touchStartY = e.touches[0].clientY;
   sfx.init();
 }, { passive: true });
 
-canvas.addEventListener('touchmove', e => {
+window.addEventListener('touchmove', e => {
   if (!touchStartX || !touchStartY) return;
   const dx = e.touches[0].clientX - touchStartX;
   const dy = e.touches[0].clientY - touchStartY;
-  if (Math.hypot(dx, dy) > 18) {
+  if (Math.hypot(dx, dy) > 16) {
     if (Math.abs(dx) > Math.abs(dy)) setDirection(dx > 0 ? 1 : -1, 0);
     else setDirection(0, dy > 0 ? 1 : -1);
     touchStartX = e.touches[0].clientX;
