@@ -3,60 +3,66 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>Qix Land Infinite - 領土拡大パズル</title>
+<title>Qix Land Infinite - iPhone 15 Edition</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-user-select: none; }
   body {
-    background-color: #050811;
-    color: #f1f5f9;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Hiragino Kaku Gothic ProN", Meiryo, sans-serif;
+    background-color: #030712;
+    color: #f3f4f6;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Hiragino Kaku Gothic ProN", sans-serif;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: space-between;
-    min-height: 100vh;
-    padding: 8px 10px calc(8px + env(safe-area-inset-bottom));
+    height: 100dvh;
+    padding-top: calc(max(10px, env(safe-area-inset-top)));
+    padding-bottom: calc(max(10px, env(safe-area-inset-bottom)));
+    padding-left: 12px;
+    padding-right: 12px;
     touch-action: none;
     overflow: hidden;
   }
   header {
     width: 100%;
-    max-width: 480px;
+    max-width: 420px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 6px 14px;
-    background: #0f172a;
-    border-radius: 12px;
-    border: 1px solid #1e293b;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+    padding: 8px 14px;
+    background: rgba(15, 23, 42, 0.85);
+    backdrop-filter: blur(12px);
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.6);
     flex-shrink: 0;
   }
   .stat-col { display: flex; flex-direction: column; align-items: center; }
-  .stat-label { font-size: 10px; color: #94a3b8; font-weight: 600; text-transform: uppercase; }
-  .stat-val { font-size: 16px; font-weight: 800; color: #38bdf8; }
-  .stat-sub { font-size: 10px; color: #fbbf24; font-weight: bold; }
+  .stat-label { font-size: 10px; color: #94a3b8; font-weight: 700; letter-spacing: 0.5px; }
+  .stat-val { font-size: 16px; font-weight: 900; color: #38bdf8; font-variant-numeric: tabular-nums; }
+  .stat-sub { font-size: 11px; color: #fbbf24; font-weight: 800; }
 
   #game-wrapper {
     position: relative;
     width: 100%;
-    max-width: 480px;
+    max-width: 420px;
     flex-grow: 1;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin: 8px 0;
+    margin: 6px 0;
+    overflow: hidden;
   }
   #canvas-container {
     position: relative;
     width: 100%;
-    aspect-ratio: 3 / 4;
-    max-height: 84vh; /* 操作バー削除により画面を大幅拡大 */
+    height: 100%;
+    max-height: 100%;
+    aspect-ratio: 54 / 117; /* iPhone 15 比率 (約 9:19.5) */
     background: #020617;
     border: 2px solid #334155;
-    border-radius: 16px;
+    border-radius: 20px;
     overflow: hidden;
-    box-shadow: 0 12px 36px rgba(0,0,0,0.8);
+    box-shadow: 0 16px 40px rgba(0,0,0,0.85);
   }
   canvas {
     width: 100%;
@@ -67,34 +73,35 @@
   #overlay {
     position: absolute;
     inset: 0;
-    background: rgba(8, 12, 20, 0.92);
+    background: rgba(4, 7, 18, 0.94);
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     padding: 24px;
     text-align: center;
-    backdrop-filter: blur(6px);
+    backdrop-filter: blur(8px);
+    z-index: 20;
   }
-  #overlay h2 { font-size: 24px; color: #38bdf8; margin-bottom: 8px; font-weight: 900; }
-  #overlay p { font-size: 13px; color: #cbd5e1; margin-bottom: 18px; line-height: 1.6; white-space: pre-line; }
+  #overlay h2 { font-size: 24px; color: #38bdf8; margin-bottom: 12px; font-weight: 900; }
+  #overlay p { font-size: 13px; color: #cbd5e1; margin-bottom: 22px; line-height: 1.6; white-space: pre-line; }
   .btn {
     background: linear-gradient(135deg, #0284c7, #2563eb);
     color: #fff;
     font-size: 16px;
     font-weight: 800;
-    padding: 12px 34px;
+    padding: 13px 38px;
     border: none;
-    border-radius: 28px;
+    border-radius: 30px;
     cursor: pointer;
-    box-shadow: 0 4px 16px rgba(14, 165, 233, 0.4);
-    transition: transform 0.1s;
+    box-shadow: 0 4px 18px rgba(14, 165, 233, 0.45);
+    transition: transform 0.1s, opacity 0.1s;
   }
-  .btn:active { transform: scale(0.95); }
+  .btn:active { transform: scale(0.96); opacity: 0.9; }
 
   .msg-banner {
     position: absolute;
-    top: 12px;
+    top: 14px;
     left: 50%;
     transform: translateX(-50%);
     background: rgba(15, 23, 42, 0.95);
@@ -103,10 +110,10 @@
     border: 1px solid #38bdf8;
     color: #facc15;
     font-size: 12px;
-    font-weight: bold;
+    font-weight: 800;
     pointer-events: none;
     opacity: 0;
-    transition: opacity 0.3s;
+    transition: opacity 0.25s, transform 0.25s;
     white-space: nowrap;
     z-index: 10;
   }
@@ -134,13 +141,13 @@
 
 <div id="game-wrapper">
   <div id="canvas-container">
-    <canvas id="gameCanvas" width="300" height="400"></canvas>
+    <canvas id="gameCanvas" width="270" height="585"></canvas>
     <div id="msg-banner" class="msg-banner">敵を撃破！</div>
     <div id="overlay">
-      <h2 id="ov-title">QIX LAND INFINITE</h2>
-      <p id="ov-desc">画面をスワイプ（PCは矢印キー）して探検！
-自分の線にぶつかっても死なずに壁として止まります。
-敵を囲い込んで倒し、無限ステージを制覇せよ！</p>
+      <h2 id="ov-title">QIX INFINITE 15</h2>
+      <p id="ov-desc">画面スワイプで線を伸ばし、敵を囲い込め！
+縦長画面＆毎回異なるランダム面を攻略せよ。
+自分の線に当たっても死なずに壁として止まります。</p>
       <button class="btn" id="start-btn">スタート</button>
     </div>
   </div>
@@ -167,25 +174,25 @@ class SoundSystem {
     osc.connect(g); g.connect(this.ctx.destination);
     osc.start(); osc.stop(this.ctx.currentTime + duration);
   }
-  playLine() { this.playTone(520, 'square', 0.03, 0.02); }
+  playLine() { this.playTone(540, 'square', 0.025, 0.02); }
   playCut() {
-    [440, 554, 659, 880].forEach((f, i) => {
-      setTimeout(() => this.playTone(f, 'triangle', 0.12, 0.06), i * 30);
+    [440, 587, 659, 880].forEach((f, i) => {
+      setTimeout(() => this.playTone(f, 'triangle', 0.1, 0.06), i * 30);
     });
   }
   playKill() {
-    [220, 440, 880, 1100].forEach((f, i) => {
+    [240, 480, 720, 1080].forEach((f, i) => {
       setTimeout(() => this.playTone(f, 'sawtooth', 0.15, 0.08), i * 35);
     });
   }
   playBuff() {
-    [587, 740, 880, 1174].forEach((f, i) => {
-      setTimeout(() => this.playTone(f, 'sine', 0.14, 0.08), i * 35);
+    [520, 650, 780, 1040].forEach((f, i) => {
+      setTimeout(() => this.playTone(f, 'sine', 0.13, 0.08), i * 30);
     });
   }
   playDebuff() {
-    [300, 260, 220, 180].forEach((f, i) => {
-      setTimeout(() => this.playTone(f, 'sawtooth', 0.14, 0.08), i * 40);
+    [320, 260, 200, 150].forEach((f, i) => {
+      setTimeout(() => this.playTone(f, 'sawtooth', 0.14, 0.07), i * 40);
     });
   }
   playHit() {
@@ -193,23 +200,24 @@ class SoundSystem {
     const osc = this.ctx.createOscillator();
     const g = this.ctx.createGain();
     osc.type = 'sawtooth';
-    osc.frequency.setValueAtTime(180, this.ctx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(40, this.ctx.currentTime + 0.3);
+    osc.frequency.setValueAtTime(190, this.ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(35, this.ctx.currentTime + 0.28);
     g.gain.setValueAtTime(0.2, this.ctx.currentTime);
-    g.gain.linearRampToValueAtTime(0, this.ctx.currentTime + 0.3);
+    g.gain.linearRampToValueAtTime(0, this.ctx.currentTime + 0.28);
     osc.connect(g); g.connect(this.ctx.destination);
-    osc.start(); osc.stop(this.ctx.currentTime + 0.3);
+    osc.start(); osc.stop(this.ctx.currentTime + 0.28);
   }
   playClear() {
     [523, 659, 783, 1046, 1318].forEach((f, i) => {
-      setTimeout(() => this.playTone(f, 'sine', 0.22, 0.1), i * 60);
+      setTimeout(() => this.playTone(f, 'sine', 0.22, 0.09), i * 55);
     });
   }
 }
 const sfx = new SoundSystem();
 
-const GW = 60;
-const GH = 80;
+// iPhone 15 縦長アスペクト (54 x 117 = 9 : 19.5, CELL_SIZE=5)
+const GW = 54;
+const GH = 117;
 const CELL_SIZE = 5;
 
 const EMPTY = 0;   // 未開拓
@@ -242,6 +250,12 @@ let player = {
 let enemies = [];
 let items = [];
 
+let stageTheme = {
+  bg: '#040714',
+  landBase: '#0284c7',
+  landAccent: '#38bdf8'
+};
+
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 const overlay = document.getElementById('overlay');
@@ -260,145 +274,26 @@ function showBanner(text, color="#facc15") {
   msgBanner.style.color = color;
   msgBanner.style.borderColor = color;
   msgBanner.style.opacity = '1';
-  setTimeout(() => { msgBanner.style.opacity = '0'; }, 1800);
+  msgBanner.style.transform = 'translate(-50%, 0) scale(1.05)';
+  setTimeout(() => {
+    msgBanner.style.opacity = '0';
+    msgBanner.style.transform = 'translate(-50%, -4px) scale(0.98)';
+  }, 1900);
 }
 
-// 8種の鮮やかなピクセルアートテーマ
-const THEMES = [
-  { name: "サイバーグリッド", darkBg: "#050814", landCol: (x, y) => ((x ^ y) % 6 === 0 ? "#38bdf8" : (x % 3 === 0 ? "#0369a1" : "#0284c7")) },
-  { name: "日本列島グリーン", darkBg: "#031024", landCol: (x, y) => ((x*7 + y*13)%20 === 0 ? "#fb7185" : ((x*7 + y*13)%20 < 8 ? "#22c55e" : "#15803d")) },
-  { name: "サバンナゴールド", darkBg: "#021329", landCol: (x, y) => ((x*11 + y*17)%24 < 6 ? "#f59e0b" : ((x*11 + y*17)%24 < 14 ? "#84cc16" : "#d97706")) },
-  { name: "マグマコア", darkBg: "#180606", landCol: (x, y) => (((x + y) % 5 === 0) ? "#f97316" : ((x * y) % 7 === 0 ? "#ef4444" : "#991b1b")) },
-  { name: "コズミックギャラクシー", darkBg: "#09031c", landCol: (x, y) => ((x*31 + y*47)%33 === 0 ? "#ffffff" : ((x*31 + y*47)%33 < 8 ? "#c084fc" : "#6b21a8")) },
-  { name: "アイスブリザード", darkBg: "#04151f", landCol: (x, y) => ((x + y*2)%7 === 0 ? "#e0f2fe" : ((x^y)%4 === 0 ? "#7dd3fc" : "#0284c7")) },
-  { name: "ディープフォレスト", darkBg: "#05160e", landCol: (x, y) => ((x*y)%9 === 0 ? "#a3e635" : ((x+y)%5 === 0 ? "#16a34a" : "#065f46")) },
-  { name: "ネオントウキョウ", darkBg: "#160517", landCol: (x, y) => ((x*3 + y)%8 === 0 ? "#f43f5e" : ((x^y)%5 === 0 ? "#e879f9" : "#86198f")) }
-];
-
-// 日本地図プロット
-function plotJapanMap() {
-  const setCell = (x, y) => { if (x >= 0 && x < GW && y >= 0 && y < GH) grid[y * GW + x] = CLAIMED; };
-  const fillEllipse = (cx, cy, rx, ry, tilt=0) => {
-    const cos = Math.cos(tilt), sin = Math.sin(tilt);
-    for (let y = cy - ry - 2; y <= cy + ry + 2; y++) {
-      for (let x = cx - rx - 2; x <= cx + rx + 2; x++) {
-        const dx = x - cx, dy = y - cy;
-        const nx = cos * dx - sin * dy;
-        const ny = sin * dx + cos * dy;
-        if ((nx*nx)/(rx*rx) + (ny*ny)/(ry*ry) <= 1) setCell(x, y);
-      }
-    }
+// テーマの動的ランダム生成
+function generateDynamicTheme(stg) {
+  const hues = [200, 145, 35, 275, 340, 175, 25];
+  const hue = hues[(stg - 1) % hues.length];
+  return {
+    bg: `hsl(${hue}, 45%, 4%)`,
+    landBase: `hsl(${hue}, 80%, 35%)`,
+    landAccent: `hsl(${(hue + 25) % 360}, 90%, 55%)`
   };
-  fillEllipse(44, 15, 8, 5, 0.2); // 北海道
-  fillEllipse(40, 20, 4, 3, -0.5);
-  fillEllipse(41, 27, 4, 6, -0.1); // 東北
-  fillEllipse(39, 39, 6, 5, 0.3);  // 関東
-  fillEllipse(33, 43, 6, 6, -0.4); // 中部
-  fillEllipse(27, 49, 4, 5, 0.2);  // 近畿
-  fillEllipse(19, 49, 7, 3, -0.2); // 中国
-  fillEllipse(22, 57, 5, 3, -0.3); // 四国
-  fillEllipse(14, 59, 4, 6, 0.2);  // 九州
-  fillEllipse(8, 72, 2, 2, 0.5);   // 沖縄
 }
 
-// 世界地図プロット
-function plotWorldMap() {
-  const fillBlob = (cx, cy, rx, ry, tilt=0) => {
-    const cos = Math.cos(tilt), sin = Math.sin(tilt);
-    for (let y = cy - ry - 2; y <= cy + ry + 2; y++) {
-      for (let x = cx - rx - 2; x <= cx + rx + 2; x++) {
-        const dx = x - cx, dy = y - cy;
-        const nx = cos * dx - sin * dy;
-        const ny = sin * dx + cos * dy;
-        if ((nx*nx)/(rx*rx) + (ny*ny)/(ry*ry) <= 1) {
-          if (x >= 0 && x < GW && y >= 0 && y < GH) grid[y * GW + x] = CLAIMED;
-        }
-      }
-    }
-  };
-  fillBlob(15, 20, 8, 7, 0.2);  // 北米
-  fillBlob(9, 14, 5, 4, -0.2);
-  fillBlob(21, 48, 6, 11, 0.3); // 南米
-  fillBlob(34, 19, 5, 4, 0.1);  // 欧州
-  fillBlob(35, 38, 7, 10, 0.1); // アフリカ
-  fillBlob(45, 20, 11, 7, -0.1);// ユーラシア
-  fillBlob(50, 56, 6, 5, 0);    // 豪州
-}
-
-// 8パターンの地形＆スタート地点
-function setupTerrainAndSpawn(type) {
-  if (type === 0) {
-    // 1. クラシック外周枠（左上スタート）
-    for (let x = 0; x < GW; x++) {
-      for (let y = 0; y < GH; y++) {
-        if (x < 2 || x >= GW - 2 || y < 2 || y >= GH - 2) grid[y * GW + x] = CLAIMED;
-      }
-    }
-    return { x: 2, y: 2 };
-  } else if (type === 1) {
-    // 2. 日本列島（本州中央・東京付近スタート）
-    plotJapanMap();
-    return { x: 39, y: 39 };
-  } else if (type === 2) {
-    // 3. センター円形孤島（真ん中スタート）
-    const cx = GW / 2, cy = GH / 2;
-    for (let y = 0; y < GH; y++) {
-      for (let x = 0; x < GW; x++) {
-        if (Math.hypot(x - cx, y - cy) <= 10) grid[y * GW + x] = CLAIMED;
-      }
-    }
-    return { x: Math.floor(cx), y: Math.floor(cy) };
-  } else if (type === 3) {
-    // 4. 世界地図（欧州大西洋スタート）
-    plotWorldMap();
-    return { x: 35, y: 20 };
-  } else if (type === 4) {
-    // 5. クロス型ハイウェイ（十字路の中心スタート）
-    for (let y = 0; y < GH; y++) {
-      for (let x = 0; x < GW; x++) {
-        if (Math.abs(x - GW/2) <= 3 || Math.abs(y - GH/2) <= 3) {
-          grid[y * GW + x] = CLAIMED;
-        }
-      }
-    }
-    return { x: Math.floor(GW/2), y: Math.floor(GH/2) };
-  } else if (type === 5) {
-    // 6. 二重リング要塞（外リング上部スタート）
-    const cx = GW/2, cy = GH/2;
-    for (let y = 0; y < GH; y++) {
-      for (let x = 0; x < GW; x++) {
-        const d = Math.hypot(x - cx, y - cy);
-        if (d <= 5 || (d >= 22 && d <= 26)) {
-          grid[y * GW + x] = CLAIMED;
-        }
-      }
-    }
-    return { x: Math.floor(cx), y: Math.floor(cy - 24) };
-  } else if (type === 6) {
-    // 7. 双子島・列島海峡（西島スタート）
-    for (let y = 0; y < GH; y++) {
-      for (let x = 0; x < GW; x++) {
-        if (Math.hypot(x - 18, y - GH/2) <= 11 || Math.hypot(x - 42, y - GH/2) <= 11) {
-          grid[y * GW + x] = CLAIMED;
-        }
-      }
-    }
-    return { x: 18, y: Math.floor(GH/2) };
-  } else {
-    // 8. 四隅の砦（左上砦スタート）
-    for (let y = 0; y < GH; y++) {
-      for (let x = 0; x < GW; x++) {
-        if ((x < 11 && y < 11) || (x > GW - 12 && y < 11) || (x < 11 && y > GH - 12) || (x > GW - 12 && y > GH - 12)) {
-          grid[y * GW + x] = CLAIMED;
-        }
-      }
-    }
-    return { x: 5, y: 5 };
-  }
-}
-
-// 岩を「未開拓エリア（EMPTY）の中だけ」に独立配置（陣地周囲3マスは避ける）
-function placeRockSafe(cx, cy, r) {
+// セル単位の岩安全配置
+function placeRockCluster(cx, cy, r) {
   for (let y = cy - r - 1; y <= cy + r + 1; y++) {
     for (let x = cx - r - 1; x <= cx + r + 1; x++) {
       if (Math.hypot(x - cx, y - cy) <= r) {
@@ -422,11 +317,91 @@ function placeRockSafe(cx, cy, r) {
   }
 }
 
-// 敵を安全なEMPTY空間に配置（スタック完全防止）
+// 完全ランダムな初期領土地形の生成
+function generateRandomTerrain(stg) {
+  const mode = Math.floor(Math.random() * 5);
+  let pSpawn = { x: 2, y: 2 };
+
+  if (mode === 0) {
+    // 1. クラシック外周枠
+    const border = 2;
+    for (let x = 0; x < GW; x++) {
+      for (let y = 0; y < GH; y++) {
+        if (x < border || x >= GW - border || y < border || y >= GH - border) {
+          grid[y * GW + x] = CLAIMED;
+        }
+      }
+    }
+    pSpawn = { x: border, y: border };
+  } else if (mode === 1) {
+    // 2. 上下デュアルコア（北極と南極）
+    const border = 2;
+    for (let x = 0; x < GW; x++) {
+      for (let y = 0; y < GH; y++) {
+        if (x < border || x >= GW - border || y < 14 || y >= GH - 14) {
+          grid[y * GW + x] = CLAIMED;
+        }
+      }
+    }
+    pSpawn = { x: Math.floor(GW / 2), y: 13 };
+  } else if (mode === 2) {
+    // 3. 中央浮島 + 外周
+    for (let x = 0; x < GW; x++) {
+      for (let y = 0; y < GH; y++) {
+        if (x < 2 || x >= GW - 2 || y < 2 || y >= GH - 2) grid[y * GW + x] = CLAIMED;
+      }
+    }
+    const cx = GW / 2, cy = GH / 2;
+    for (let y = 0; y < GH; y++) {
+      for (let x = 0; x < GW; x++) {
+        if (Math.hypot(x - cx, y - cy) <= 9) grid[y * GW + x] = CLAIMED;
+      }
+    }
+    pSpawn = { x: Math.floor(cx), y: Math.floor(cy) };
+  } else if (mode === 3) {
+    // 4. 十字ハイウェイ
+    for (let y = 0; y < GH; y++) {
+      for (let x = 0; x < GW; x++) {
+        if (Math.abs(x - GW/2) <= 2 || Math.abs(y - GH/2) <= 3 || x < 2 || x >= GW - 2 || y < 2 || y >= GH - 2) {
+          grid[y * GW + x] = CLAIMED;
+        }
+      }
+    }
+    pSpawn = { x: Math.floor(GW / 2), y: Math.floor(GH / 2) };
+  } else {
+    // 5. 3点ポディウム（上・中・下の島）
+    for (let x = 0; x < GW; x++) {
+      for (let y = 0; y < GH; y++) {
+        if (x < 2 || x >= GW - 2 || y < 2 || y >= GH - 2) grid[y * GW + x] = CLAIMED;
+      }
+    }
+    const spots = [{x: GW/2, y: GH*0.25}, {x: GW/2, y: GH*0.75}];
+    spots.forEach(sp => {
+      for (let y = 0; y < GH; y++) {
+        for (let x = 0; x < GW; x++) {
+          if (Math.hypot(x - sp.x, y - sp.y) <= 8) grid[y * GW + x] = CLAIMED;
+        }
+      }
+    });
+    pSpawn = { x: Math.floor(GW / 2), y: Math.floor(GH * 0.25) };
+  }
+
+  // ランダム岩礁クラスタ（1〜3箇所）
+  const rockCount = Math.min(4, 1 + Math.floor(stg / 2));
+  for (let i = 0; i < rockCount; i++) {
+    const rcx = 8 + Math.floor(Math.random() * (GW - 16));
+    const rcy = 15 + Math.floor(Math.random() * (GH - 30));
+    placeRockCluster(rcx, rcy, 2 + Math.floor(Math.random() * 2));
+  }
+
+  return pSpawn;
+}
+
+// 敵の安全湧き位置探索
 function findSafeEnemySpawn(radius) {
-  for (let attempt = 0; attempt < 500; attempt++) {
-    const rx = radius + 3 + Math.random() * (GW * CELL_SIZE - (radius + 3) * 2);
-    const ry = radius + 3 + Math.random() * (GH * CELL_SIZE - (radius + 3) * 2);
+  for (let attempt = 0; attempt < 600; attempt++) {
+    const rx = radius + 4 + Math.random() * (GW * CELL_SIZE - (radius + 4) * 2);
+    const ry = radius + 4 + Math.random() * (GH * CELL_SIZE - (radius + 4) * 2);
 
     let isSafe = true;
     const checkRadiusCells = Math.ceil((radius + 6) / CELL_SIZE);
@@ -452,18 +427,28 @@ function findSafeEnemySpawn(radius) {
       if (!isSafe) break;
     }
 
-    if (isSafe) {
-      return { x: rx, y: ry };
-    }
+    if (isSafe) return { x: rx, y: ry };
   }
-  for (let y = 10; y < GH - 10; y++) {
-    for (let x = 10; x < GW - 10; x++) {
-      if (grid[y * GW + x] === EMPTY) {
-        return { x: x * CELL_SIZE + CELL_SIZE / 2, y: y * CELL_SIZE + CELL_SIZE / 2 };
-      }
-    }
+  return { x: GW * CELL_SIZE / 2, y: GH * CELL_SIZE / 2 };
+}
+
+// 敵の種類生成ファクトリ
+function createEnemyByType(type, baseSpeed) {
+  const p = findSafeEnemySpawn(8);
+  if (type === 'SNAKE') {
+    return { x: p.x, y: p.y, vx: baseSpeed * 0.9, vy: baseSpeed * 0.7, r: 8, type: 'SNAKE', color: '#fb923c', name: 'スネーク', waveTimer: 0 };
+  } else if (type === 'HUNTER') {
+    return { x: p.x, y: p.y, vx: baseSpeed * 0.75, vy: baseSpeed * 0.75, r: 8, type: 'HUNTER', color: '#e11d48', name: 'ハンター' };
+  } else if (type === 'WARPER') {
+    return { x: p.x, y: p.y, vx: baseSpeed * 0.8, vy: baseSpeed * 0.8, r: 8, type: 'WARPER', color: '#a855f7', name: 'ワーパー', warpCooldown: 240 };
+  } else if (type === 'BOSS') {
+    const bp = findSafeEnemySpawn(14);
+    return { x: bp.x, y: bp.y, vx: baseSpeed * 0.65, vy: baseSpeed * 0.7, r: 14, type: 'BOSS', color: '#ef4444', name: 'ギガボム' };
+  } else if (type === 'FAST') {
+    return { x: p.x, y: p.y, vx: baseSpeed * 1.25, vy: baseSpeed * 1.1, r: 6, type: 'FAST', color: '#38bdf8', name: 'コメット' };
+  } else {
+    return { x: p.x, y: p.y, vx: baseSpeed, vy: baseSpeed * 0.85, r: 8, type: 'NORMAL', color: '#f43f5e', name: 'ピンボール' };
   }
-  return { x: 30 * CELL_SIZE, y: 30 * CELL_SIZE };
 }
 
 function initStage(stg) {
@@ -475,74 +460,58 @@ function initStage(stg) {
   stageTargetPercent = Math.min(80, 70 + Math.floor(stg / 3));
   targetDisp.textContent = `${stageTargetPercent}%`;
 
-  // 8種類の地形から選択
-  const mapType = (stg - 1) % 8;
-  const pSpawn = setupTerrainAndSpawn(mapType);
+  stageTheme = generateDynamicTheme(stg);
 
+  // ランダム面生成
+  const pSpawn = generateRandomTerrain(stg);
   player.gx = pSpawn.x;
   player.gy = pSpawn.y;
   spawnPoint.x = pSpawn.x;
   spawnPoint.y = pSpawn.y;
 
-  // 岩の安全配置
-  if (stg >= 2 && mapType !== 1) {
-    placeRockSafe(Math.floor(GW * 0.35), Math.floor(GH * 0.35), 3);
-    if (stg >= 5) {
-      placeRockSafe(Math.floor(GW * 0.65), Math.floor(GH * 0.65), 3);
-    }
-  }
-
-  // 敵の生成
+  // 敵の生成（通常は1〜最大3体）
   enemies = [];
-  const baseSpeed = 1.6 + Math.min(1.4, stg * 0.12);
-
-  const spawn1 = findSafeEnemySpawn(8);
-  if (stg % 3 === 0) {
-    enemies.push({ x: spawn1.x, y: spawn1.y, vx: baseSpeed * 0.9, vy: baseSpeed * 0.7, r: 8, type: 'BOUNCE', color: '#fb923c', name: 'スネーク' });
-  } else if (stg % 4 === 0) {
-    const bossSpawn = findSafeEnemySpawn(14);
-    enemies.push({ x: bossSpawn.x, y: bossSpawn.y, vx: baseSpeed * 0.7, vy: baseSpeed * 0.8, r: 14, type: 'BOSS', color: '#ef4444', name: 'ギガボム' });
+  const baseSpeed = 1.6 + Math.min(1.4, stg * 0.1);
+  const enemyPool = ['NORMAL', 'SNAKE', 'HUNTER', 'WARPER', 'FAST'];
+  
+  if (stg % 4 === 0) {
+    enemies.push(createEnemyByType('BOSS', baseSpeed));
   } else {
-    enemies.push({ x: spawn1.x, y: spawn1.y, vx: baseSpeed, vy: baseSpeed * 0.8, r: 8, type: 'NORMAL', color: '#f43f5e', name: 'スライム' });
+    enemies.push(createEnemyByType(enemyPool[Math.floor(Math.random() * enemyPool.length)], baseSpeed));
   }
-
-  if (stg >= 3) {
-    const spawn2 = findSafeEnemySpawn(7);
-    enemies.push({ x: spawn2.x, y: spawn2.y, vx: -baseSpeed * 0.85, vy: baseSpeed * 0.95, r: 7, type: 'FAST', color: '#a855f7', name: 'コメット' });
-  }
-  if (stg >= 7) {
-    const spawn3 = findSafeEnemySpawn(8);
-    enemies.push({ x: spawn3.x, y: spawn3.y, vx: baseSpeed * 0.9, vy: -baseSpeed * 0.8, r: 8, type: 'NORMAL', color: '#38bdf8', name: 'パルサー' });
-  }
-
-  // アイテム配置
-  const allItemTypes = [
-    { type: 'SPEED_UP', icon: '⚡', name: 'スピードUP' },
-    { type: 'SPEED_DOWN', icon: '🐌', name: 'スピードダウン' },
-    { type: 'FREEZE', icon: '❄', name: '敵氷結ストップ' },
-    { type: 'BOMB', icon: '💣', name: '敵撃破ボム' },
-    { type: 'HEART', icon: '💖', name: 'ライフ回復' },
-    { type: 'SHIELD', icon: '🛡', name: '無敵バリア' }
-  ];
-
-  const it1 = allItemTypes[(stg) % allItemTypes.length];
-  const it2 = allItemTypes[(stg + 3) % allItemTypes.length];
-
-  const findEmptyItemCell = () => {
-    for (let attempts = 0; attempts < 200; attempts++) {
-      const rx = 5 + Math.floor(Math.random() * (GW - 10));
-      const ry = 5 + Math.floor(Math.random() * (GH - 10));
-      if (grid[ry * GW + rx] === EMPTY) return { gx: rx, gy: ry };
-    }
-    return { gx: 30, gy: 50 };
-  };
-
-  const p1 = findEmptyItemCell();
-  items.push({ gx: p1.gx, gy: p1.gy, type: it1.type, icon: it1.icon, name: it1.name });
 
   if (stg >= 2) {
-    const p2 = findEmptyItemCell();
-    items.push({ gx: p2.gx, gy: p2.gy, type: it2.type, icon: it2.icon, name: it2.name });
+    enemies.push(createEnemyByType(enemyPool[Math.floor(Math.random() * enemyPool.length)], baseSpeed));
+  }
+  if (stg >= 5) {
+    enemies.push(createEnemyByType(enemyPool[Math.floor(Math.random() * enemyPool.length)], baseSpeed));
+  }
+
+  // アイテム生成（1ステージ最大2個）
+  const allItemTypes = [
+    { type: 'SPEED_UP', icon: '⚡', name: 'ターボブースト' },
+    { type: 'FREEZE', icon: '❄', name: '絶対零度' },
+    { type: 'BOMB', icon: '💣', name: '殲滅ボム' },
+    { type: 'HEART', icon: '💖', name: 'ライフ回復' },
+    { type: 'SHIELD', icon: '🛡', name: '無敵バリア' },
+    { type: 'CUTTER', icon: '✂', name: 'インスタントカッター' },
+    { type: 'PANDORA', icon: '🎁', name: 'パンドラの箱' }
+  ];
+
+  const findEmptyItemCell = () => {
+    for (let attempts = 0; attempts < 300; attempts++) {
+      const rx = 4 + Math.floor(Math.random() * (GW - 8));
+      const ry = 6 + Math.floor(Math.random() * (GH - 12));
+      if (grid[ry * GW + rx] === EMPTY) return { gx: rx, gy: ry };
+    }
+    return { gx: Math.floor(GW / 2), gy: Math.floor(GH / 2) };
+  };
+
+  const countItems = Math.random() < 0.35 ? 1 : 2;
+  for (let i = 0; i < countItems; i++) {
+    const itDef = allItemTypes[Math.floor(Math.random() * allItemTypes.length)];
+    const cell = findEmptyItemCell();
+    items.push({ gx: cell.gx, gy: cell.gy, type: itDef.type, icon: itDef.icon, name: itDef.name });
   }
 
   player.vx = 0; player.vy = 0;
@@ -568,6 +537,7 @@ function updateStats() {
   enemyDisp.textContent = `👾×${enemies.length}`;
 }
 
+// 囲い込みによる領土確定判定
 function fillEnclosedArea() {
   player.trail.forEach(pt => { grid[pt.y * GW + pt.x] = CLAIMED; });
 
@@ -593,7 +563,7 @@ function fillEnclosedArea() {
   });
 
   let head = 0;
-  while(head < queue.length) {
+  while (head < queue.length) {
     const qx = queue[head++];
     const qy = queue[head++];
 
@@ -614,425 +584,4 @@ function fillEnclosedArea() {
   for (let y = 0; y < GH; y++) {
     for (let x = 0; x < GW; x++) {
       const idx = y * GW + x;
-      if (grid[idx] === EMPTY && visited[idx] === 0) {
-        grid[idx] = CLAIMED;
-      }
-    }
-  }
-
-  // 岩の完全包囲粉砕判定
-  let rocksCleared = false;
-  for (let y = 0; y < GH; y++) {
-    for (let x = 0; x < GW; x++) {
-      const idx = y * GW + x;
-      if (grid[idx] === ROCK) {
-        let hasEmptyNeighbor = false;
-        for (let dy = -1; dy <= 1; dy++) {
-          for (let dx = -1; dx <= 1; dx++) {
-            const nx = x + dx, ny = y + dy;
-            if (nx >= 0 && nx < GW && ny >= 0 && ny < GH) {
-              if (grid[ny * GW + nx] === EMPTY) {
-                hasEmptyNeighbor = true;
-                break;
-              }
-            }
-          }
-          if (hasEmptyNeighbor) break;
-        }
-        if (!hasEmptyNeighbor) {
-          grid[idx] = CLAIMED;
-          rocksCleared = true;
-        }
-      }
-    }
-  }
-  if (rocksCleared) {
-    showBanner("🪨 邪魔な岩を完全包囲して粉砕！", "#38bdf8");
-  }
-
-  const finalEnemies = [];
-  survivingEnemies.forEach(e => {
-    const egx = Math.max(0, Math.min(GW - 1, Math.floor(e.x / CELL_SIZE)));
-    const egy = Math.max(0, Math.min(GH - 1, Math.floor(e.y / CELL_SIZE)));
-    if (grid[egy * GW + egx] === CLAIMED) {
-      sfx.playKill();
-      showBanner(`【撃破!!】${e.name} を囲んで倒した！`, '#f43f5e');
-    } else {
-      finalEnemies.push(e);
-    }
-  });
-  enemies = finalEnemies;
-
-  items = items.filter(it => {
-    if (grid[it.gy * GW + it.gx] === CLAIMED) {
-      applyItem(it);
-      return false;
-    }
-    return true;
-  });
-
-  player.trail = [];
-  sfx.playCut();
-  updateStats();
-
-  if (enemies.length === 0) {
-    showBanner("👾 敵を全滅！ステージ制覇！", "#38bdf8");
-  }
-
-  if (currentAreaPercent >= stageTargetPercent || enemies.length === 0) {
-    handleStageClear();
-  }
-}
-
-function applyItem(it) {
-  if (it.type === 'SPEED_UP') {
-    sfx.playBuff();
-    player.speedDelay = 1;
-    setTimeout(() => { player.speedDelay = player.baseDelay; }, 7000);
-    showBanner("⚡ スピードアップ！(7秒間)", "#facc15");
-  } else if (it.type === 'SPEED_DOWN') {
-    sfx.playDebuff();
-    player.speedDelay = 3;
-    setTimeout(() => { player.speedDelay = player.baseDelay; }, 6000);
-    showBanner("🐌 スピードダウン！足が重い…", "#94a3b8");
-  } else if (it.type === 'FREEZE') {
-    sfx.playBuff();
-    enemies.forEach(e => { e.savedVx = e.vx; e.savedVy = e.vy; e.vx = 0; e.vy = 0; });
-    setTimeout(() => {
-      enemies.forEach(e => { e.vx = e.savedVx || 1.5; e.vy = e.savedVy || 1.5; });
-    }, 4500);
-    showBanner("❄ 敵が4.5秒間氷結完全停止！", "#38bdf8");
-  } else if (it.type === 'BOMB') {
-    sfx.playKill();
-    if (enemies.length > 0) {
-      const dead = enemies.pop();
-      showBanner(`💣 ボム爆発！ ${dead.name} を粉砕！`, "#f97316");
-    }
-  } else if (it.type === 'HEART') {
-    sfx.playBuff();
-    lives = Math.min(5, lives + 1);
-    showBanner("💖 ライフが1つ回復した！", "#f43f5e");
-  } else if (it.type === 'SHIELD') {
-    sfx.playBuff();
-    player.invincibleTimer = 300;
-    showBanner("🛡 バリア展開！5秒間敵の攻撃を無効化！", "#a855f7");
-  }
-  updateStats();
-}
-
-function handleStageClear() {
-  isPlaying = false;
-  sfx.playClear();
-  currentStage++;
-  if (currentStage > highestStage) highestStage = currentStage;
-
-  const nextTheme = THEMES[(currentStage - 1) % THEMES.length];
-  ovTitle.textContent = `🎉 STAGE ${currentStage - 1} クリア！`;
-  ovDesc.textContent = `クリア面数: ${currentStage - 1} 面達成！
-次は『STAGE ${currentStage}: ${nextTheme.name}』です。`;
-  startBtn.textContent = `STAGE ${currentStage} へ進む`;
-  overlay.style.display = 'flex';
-}
-
-function handleDeath() {
-  if (player.invincibleTimer > 0) return;
-
-  sfx.playHit();
-  lives--;
-  updateStats();
-
-  player.trail.forEach(pt => { grid[pt.y * GW + pt.x] = EMPTY; });
-  player.trail = [];
-  player.vx = 0; player.vy = 0;
-  player.nextVx = 0; player.nextVy = 0;
-
-  if (lives <= 0) {
-    isPlaying = false;
-    ovTitle.textContent = 'ゲームオーバー';
-    ovDesc.textContent = `到達ステージ: STAGE ${currentStage}
-クリア面数: ${currentStage - 1} 面
-再挑戦してハイスコアを目指そう！`;
-    startBtn.textContent = 'STAGE 1 から再挑戦';
-    overlay.style.display = 'flex';
-    currentStage = 1;
-    lives = 3;
-  } else {
-    let found = false;
-    const searchOriginX = spawnPoint.x;
-    const searchOriginY = spawnPoint.y;
-
-    for (let r = 0; r < GW && !found; r++) {
-      for (let dy = -r; dy <= r && !found; dy++) {
-        for (let dx = -r; dx <= r && !found; dx++) {
-          if (Math.abs(dx) !== r && Math.abs(dy) !== r) continue;
-          const nx = searchOriginX + dx;
-          const ny = searchOriginY + dy;
-          if (nx >= 0 && nx < GW && ny >= 0 && ny < GH) {
-            if (grid[ny * GW + nx] === CLAIMED) {
-              player.gx = nx;
-              player.gy = ny;
-              player.inClaimed = true;
-              found = true;
-            }
-          }
-        }
-      }
-    }
-
-    if (!found) {
-      player.gx = spawnPoint.x;
-      player.gy = spawnPoint.y;
-      player.inClaimed = true;
-    }
-  }
-}
-
-function updatePlayer() {
-  if (player.invincibleTimer > 0) player.invincibleTimer--;
-
-  player.speedCounter++;
-  if (player.speedCounter % player.speedDelay !== 0) return;
-
-  if (player.nextVx !== 0 || player.nextVy !== 0) {
-    player.vx = player.nextVx;
-    player.vy = player.nextVy;
-  }
-  if (player.vx === 0 && player.vy === 0) return;
-
-  const nx = player.gx + player.vx;
-  const ny = player.gy + player.vy;
-
-  if (nx < 0 || nx >= GW || ny < 0 || ny >= GH) {
-    player.vx = 0; player.vy = 0;
-    return;
-  }
-
-  const target = grid[ny * GW + nx];
-
-  // 【重要改善】岩（ROCK）だけでなく、自分の引いている線（TRAIL）も「死なずに突き抜けられない壁」として停止
-  if (target === ROCK || target === TRAIL) {
-    player.vx = 0; player.vy = 0;
-    player.nextVx = 0; player.nextVy = 0;
-    return;
-  }
-
-  player.gx = nx;
-  player.gy = ny;
-
-  if (target === CLAIMED) {
-    if (!player.inClaimed) {
-      fillEnclosedArea();
-      player.inClaimed = true;
-    }
-  } else if (target === EMPTY) {
-    player.inClaimed = false;
-    grid[ny * GW + nx] = TRAIL;
-    player.trail.push({ x: nx, y: ny });
-    sfx.playLine();
-  }
-}
-
-function updateEnemies() {
-  enemies.forEach(e => {
-    if (e.vx === 0 && e.vy === 0) return;
-
-    if (e.type === 'BOUNCE') {
-      e.vy += Math.sin(Date.now() * 0.005) * 0.04;
-    }
-
-    e.x += e.vx;
-    e.y += e.vy;
-
-    const gx = Math.floor(e.x / CELL_SIZE);
-    const gy = Math.floor(e.y / CELL_SIZE);
-
-    if (e.x - e.r < 0 || e.x + e.r >= GW * CELL_SIZE) e.vx *= -1;
-    if (e.y - e.r < 0 || e.y + e.r >= GH * CELL_SIZE) e.vy *= -1;
-
-    const checkRadius = Math.ceil(e.r / CELL_SIZE);
-    for (let dy = -checkRadius; dy <= checkRadius; dy++) {
-      for (let dx = -checkRadius; dx <= checkRadius; dx++) {
-        const cx = gx + dx;
-        const cy = gy + dy;
-        if (cx >= 0 && cx < GW && cy >= 0 && cy < GH) {
-          const cell = grid[cy * GW + cx];
-          const cellCenterX = cx * CELL_SIZE + CELL_SIZE / 2;
-          const cellCenterY = cy * CELL_SIZE + CELL_SIZE / 2;
-          const dist = Math.hypot(e.x - cellCenterX, e.y - cellCenterY);
-
-          if ((cell === CLAIMED || cell === ROCK) && dist < e.r + CELL_SIZE / 2) {
-            if (Math.abs(e.x - cellCenterX) > Math.abs(e.y - cellCenterY)) {
-              e.vx *= -1;
-              e.x += (e.vx > 0 ? 1 : -1) * 1.5;
-            } else {
-              e.vy *= -1;
-              e.y += (e.vy > 0 ? 1 : -1) * 1.5;
-            }
-          }
-          // 敵がトレイル（引いている線）に触れたらプレイヤーミス
-          if (cell === TRAIL && dist < e.r + CELL_SIZE / 2) {
-            handleDeath();
-            return;
-          }
-        }
-      }
-    }
-
-    const pRealX = player.gx * CELL_SIZE + CELL_SIZE / 2;
-    const pRealY = player.gy * CELL_SIZE + CELL_SIZE / 2;
-    if (!player.inClaimed && Math.hypot(e.x - pRealX, e.y - pRealY) < e.r + CELL_SIZE / 2) {
-      handleDeath();
-    }
-  });
-}
-
-function draw() {
-  const theme = THEMES[(currentStage - 1) % THEMES.length];
-  ctx.fillStyle = theme.darkBg;
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-  for (let y = 0; y < GH; y++) {
-    for (let x = 0; x < GW; x++) {
-      const c = grid[y * GW + x];
-      if (c === CLAIMED) {
-        ctx.fillStyle = theme.landCol(x, y);
-        ctx.fillRect(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE);
-      } else if (c === TRAIL) {
-        ctx.fillStyle = '#22c55e';
-        ctx.fillRect(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE);
-      } else if (c === ROCK) {
-        ctx.fillStyle = (x + y) % 2 === 0 ? '#475569' : '#1e293b';
-        ctx.fillRect(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE);
-        if ((x * 3 + y * 7) % 11 === 0) {
-          ctx.fillStyle = '#94a3b8';
-          ctx.fillRect(x * CELL_SIZE + 1, y * CELL_SIZE + 1, 2, 2);
-        }
-      }
-    }
-  }
-
-  items.forEach(it => {
-    const ix = it.gx * CELL_SIZE + CELL_SIZE / 2;
-    const iy = it.gy * CELL_SIZE + CELL_SIZE / 2;
-    ctx.font = '12px sans-serif';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(it.icon, ix, iy);
-  });
-
-  enemies.forEach(e => {
-    ctx.save();
-    ctx.translate(e.x, e.y);
-    ctx.beginPath();
-    ctx.arc(0, 0, e.r, 0, Math.PI * 2);
-    ctx.fillStyle = e.color;
-    ctx.shadowBlur = 8;
-    ctx.shadowColor = e.color;
-    ctx.fill();
-    ctx.shadowBlur = 0;
-
-    if (e.vx === 0 && e.vy === 0) {
-      ctx.strokeStyle = '#38bdf8';
-      ctx.lineWidth = 2;
-      ctx.stroke();
-    }
-
-    ctx.fillStyle = '#ffffff';
-    ctx.beginPath();
-    ctx.arc(-e.r * 0.35, -e.r * 0.15, e.r * 0.28, 0, Math.PI*2);
-    ctx.arc(e.r * 0.35, -e.r * 0.15, e.r * 0.28, 0, Math.PI*2);
-    ctx.fill();
-    ctx.fillStyle = '#0f172a';
-    ctx.beginPath();
-    ctx.arc(-e.r * 0.3, -e.r * 0.15, e.r * 0.14, 0, Math.PI*2);
-    ctx.arc(e.r * 0.4, -e.r * 0.15, e.r * 0.14, 0, Math.PI*2);
-    ctx.fill();
-
-    if (e.type === 'BOSS') {
-      ctx.fillStyle = '#fbbf24';
-      ctx.beginPath();
-      ctx.moveTo(-e.r*0.6, -e.r*0.8);
-      ctx.lineTo(-e.r*0.3, -e.r*1.2);
-      ctx.lineTo(0, -e.r*0.8);
-      ctx.lineTo(e.r*0.3, -e.r*1.2);
-      ctx.lineTo(e.r*0.6, -e.r*0.8);
-      ctx.closePath();
-      ctx.fill();
-    }
-    ctx.restore();
-  });
-
-  const px = player.gx * CELL_SIZE;
-  const py = player.gy * CELL_SIZE;
-  ctx.fillStyle = player.invincibleTimer > 0 ? '#ec4899' : '#fde047';
-  if (player.invincibleTimer > 0) {
-    ctx.shadowBlur = 12; ctx.shadowColor = '#ec4899';
-  } else {
-    ctx.shadowBlur = 8; ctx.shadowColor = '#facc15';
-  }
-  ctx.fillRect(px - 1, py - 1, CELL_SIZE + 2, CELL_SIZE + 2);
-  ctx.shadowBlur = 0;
-  ctx.fillStyle = '#1e293b';
-  ctx.fillRect(px + 1, py + 1, 2, 2);
-}
-
-function gameLoop() {
-  if (isPlaying) {
-    updatePlayer();
-    updateEnemies();
-    draw();
-  }
-  requestAnimationFrame(gameLoop);
-}
-
-function setDirection(x, y) {
-  // 逆方向入力による即反転のみ抑止
-  if (player.trail.length > 0) {
-    if (x === -player.vx && y === 0) return;
-    if (y === -player.vy && x === 0) return;
-  }
-  player.nextVx = x;
-  player.nextVy = y;
-}
-
-window.addEventListener('keydown', e => {
-  if (['ArrowUp', 'KeyW'].includes(e.code)) { setDirection(0, -1); e.preventDefault(); }
-  if (['ArrowDown', 'KeyS'].includes(e.code)) { setDirection(0, 1); e.preventDefault(); }
-  if (['ArrowLeft', 'KeyA'].includes(e.code)) { setDirection(-1, 0); e.preventDefault(); }
-  if (['ArrowRight', 'KeyD'].includes(e.code)) { setDirection(1, 0); e.preventDefault(); }
-});
-
-// 全画面スワイプ / ドラッグ操作
-let touchStartX = 0, touchStartY = 0;
-window.addEventListener('touchstart', e => {
-  touchStartX = e.touches[0].clientX;
-  touchStartY = e.touches[0].clientY;
-  sfx.init();
-}, { passive: true });
-
-window.addEventListener('touchmove', e => {
-  if (!touchStartX || !touchStartY) return;
-  const dx = e.touches[0].clientX - touchStartX;
-  const dy = e.touches[0].clientY - touchStartY;
-  if (Math.hypot(dx, dy) > 16) {
-    if (Math.abs(dx) > Math.abs(dy)) setDirection(dx > 0 ? 1 : -1, 0);
-    else setDirection(0, dy > 0 ? 1 : -1);
-    touchStartX = e.touches[0].clientX;
-    touchStartY = e.touches[0].clientY;
-  }
-}, { passive: true });
-
-startBtn.addEventListener('click', () => {
-  sfx.init();
-  overlay.style.display = 'none';
-  initStage(currentStage);
-  isPlaying = true;
-});
-
-initStage(1);
-draw();
-requestAnimationFrame(gameLoop);
-</script>
-
-</body>
-</html>
+      if (grid[idx] === EMPTY && visited
