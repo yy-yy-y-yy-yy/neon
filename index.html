@@ -87,7 +87,6 @@
     image-rendering: pixelated;
   }
 
-  /* オーバーレイ：iOSでのタップを確実に拾うため pointer-events と cursor を明示 */
   #overlay {
     position: absolute;
     inset: 0;
@@ -208,13 +207,13 @@
     <div id="overlay">
       <h2 id="ov-title">QIX INFINITE 15</h2>
       <p id="ov-desc">画面をスワイプして陣地を広げ、敵を囲い込め！
-毎回地形・ギミック・敵が変わる完全ランダム生成。
-自分の線に当たっても死なずに壁として止まります。</p>
+敵もワープホールを利用して空間跳躍します。
+パンドラの箱は何が起きるか分からない超絶カオス仕様！</p>
       <div class="feature-badges">
-        <span class="badge">🌀 ワープホール</span>
+        <span class="badge">🌀 敵味方両用ワープ</span>
+        <span class="badge">🎁 カオス・パンドラ箱</span>
         <span class="badge">🟣 減速沼ゾーン</span>
         <span class="badge">🪨 岩ハメ＆包囲粉砕</span>
-        <span class="badge">🎁 パンドラの箱</span>
       </div>
       <button type="button" class="btn" id="start-btn">ゲームスタート</button>
       <div class="tap-hint">画面をタップして開始</div>
@@ -295,7 +294,7 @@ const EMPTY = 0;   // 未開拓
 const CLAIMED = 1; // 獲得領土
 const TRAIL = 2;   // 描画中の線
 const ROCK = 3;    // 岩（反射壁＆包囲で粉砕）
-const MUD = 4;     // 減速沼（未開拓扱いだが通過中鈍足）
+const MUD = 4;     // 減速沼
 
 let grid = new Uint8Array(GW * GH);
 let currentStage = 1;
@@ -323,8 +322,8 @@ let player = {
 
 let enemies = [];
 let items = [];
-let portals = [];     // ワームホールペア [{gx, gy, color}, {gx, gy, color}]
-let particles = [];   // 撃破・粉砕エフェクト用パーティクル
+let portals = [];     // ワームホールペア
+let particles = [];
 let touchGuide = { active: false, x: 0, y: 0, curX: 0, curY: 0 };
 
 let stageTheme = {
@@ -333,7 +332,6 @@ let stageTheme = {
   landAccent: '#38bdf8'
 };
 
-// DOM要素
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 const overlay = document.getElementById('overlay');
@@ -358,7 +356,7 @@ function showBanner(text, color="#facc15") {
   bannerTimeout = setTimeout(() => {
     msgBanner.style.opacity = '0';
     msgBanner.style.transform = 'translate(-50%, -4px) scale(0.98)';
-  }, 1900);
+  }, 2200);
 }
 
 function spawnParticles(px, py, color, count=18) {
@@ -376,7 +374,6 @@ function spawnParticles(px, py, color, count=18) {
   }
 }
 
-// ステージごとのランダムカラー生成
 function generateDynamicTheme() {
   const hue = Math.floor(Math.random() * 360);
   return {
@@ -386,7 +383,6 @@ function generateDynamicTheme() {
   };
 }
 
-// 岩塊の安全配置
 function placeRockCluster(cx, cy, r) {
   for (let y = cy - r - 1; y <= cy + r + 1; y++) {
     for (let x = cx - r - 1; x <= cx + r + 1; x++) {
@@ -411,7 +407,6 @@ function placeRockCluster(cx, cy, r) {
   }
 }
 
-// 減速沼（宇宙塵）の配置
 function placeMudZone(cx, cy, rx, ry) {
   for (let y = cy - ry; y <= cy + ry; y++) {
     for (let x = cx - rx; x <= cx + rx; x++) {
@@ -426,12 +421,10 @@ function placeMudZone(cx, cy, rx, ry) {
   }
 }
 
-// 完全にランダムな初期地形＆ギミック生成
 function generateRandomTerrain(stg) {
   const mode = Math.floor(Math.random() * 6);
   let pSpawn = { x: 2, y: 2 };
 
-  // 基本の外周2マスを張るかどうか（モードによって変化）
   const setBorder = (thickness = 2) => {
     for (let x = 0; x < GW; x++) {
       for (let y = 0; y < GH; y++) {
@@ -443,7 +436,6 @@ function generateRandomTerrain(stg) {
   };
 
   if (mode === 0) {
-    // 1. 外周 + ランダムな内壁突起（敵をハメやすい地形）
     setBorder(2);
     const pillars = 2 + Math.floor(Math.random() * 3);
     for (let i = 0; i < pillars; i++) {
@@ -457,7 +449,6 @@ function generateRandomTerrain(stg) {
     }
     pSpawn = { x: 2, y: 2 };
   } else if (mode === 1) {
-    // 2. 上下デュアルコア（北極・南極スタート）
     setBorder(2);
     for (let x = 0; x < GW; x++) {
       for (let y = 0; y < GH; y++) {
@@ -466,7 +457,6 @@ function generateRandomTerrain(stg) {
     }
     pSpawn = { x: Math.floor(GW / 2), y: 11 };
   } else if (mode === 2) {
-    // 3. センター孤島（外周なし・中央から広げる）
     setBorder(1);
     const cx = Math.floor(GW / 2), cy = Math.floor(GH / 2);
     for (let y = 0; y < GH; y++) {
@@ -476,7 +466,6 @@ function generateRandomTerrain(stg) {
     }
     pSpawn = { x: cx, y: cy };
   } else if (mode === 3) {
-    // 4. クロス・ハイウェイ（縦横の十字路）
     setBorder(1);
     const cx = Math.floor(GW / 2), cy = Math.floor(GH / 2);
     for (let y = 0; y < GH; y++) {
@@ -486,7 +475,6 @@ function generateRandomTerrain(stg) {
     }
     pSpawn = { x: cx, y: cy };
   } else if (mode === 4) {
-    // 5. ランダム飛び石アイランド（3〜4個の小島）
     setBorder(2);
     const islandCount = 3;
     for (let i = 0; i < islandCount; i++) {
@@ -501,7 +489,6 @@ function generateRandomTerrain(stg) {
       if (i === 0) pSpawn = { x: ix, y: iy };
     }
   } else {
-    // 6. 砂時計型キャニオン（左右がくびれた地形）
     setBorder(2);
     const cy = Math.floor(GH / 2);
     for (let y = cy - 18; y <= cy + 18; y++) {
@@ -514,7 +501,6 @@ function generateRandomTerrain(stg) {
     pSpawn = { x: 2, y: cy };
   }
 
-  // 減速沼ゾーン（1〜2箇所）
   const mudCount = Math.random() < 0.7 ? 1 : 2;
   for (let i = 0; i < mudCount; i++) {
     const mx = 10 + Math.floor(Math.random() * (GW - 20));
@@ -522,7 +508,6 @@ function generateRandomTerrain(stg) {
     placeMudZone(mx, my, 5 + Math.floor(Math.random() * 4), 7 + Math.floor(Math.random() * 5));
   }
 
-  // 岩塊（アステロイド）を2〜4箇所ランダム配置
   const rockCount = 2 + Math.floor(Math.random() * 3);
   for (let i = 0; i < rockCount; i++) {
     const rx = 8 + Math.floor(Math.random() * (GW - 16));
@@ -530,7 +515,6 @@ function generateRandomTerrain(stg) {
     placeRockCluster(rx, ry, 2 + Math.floor(Math.random() * 3));
   }
 
-  // ワームホール（ポータル）ペア配置（約65%の確率で出現）
   portals = [];
   if (Math.random() < 0.65) {
     const findPortalSpot = (minY, maxY) => {
@@ -552,7 +536,6 @@ function generateRandomTerrain(stg) {
   return pSpawn;
 }
 
-// 敵が壁や岩に埋まらない安全な初期座標を探す
 function findSafeEnemySpawn(radius) {
   for (let attempt = 0; attempt < 600; attempt++) {
     const rx = radius + 6 + Math.random() * (GW * CELL_SIZE - (radius + 6) * 2);
@@ -592,26 +575,60 @@ function createEnemyByType(type, baseSpeed, customPos=null) {
   const vx = Math.cos(angle) * baseSpeed;
   const vy = Math.sin(angle) * baseSpeed;
 
+  const baseEnemy = {
+    x: p.x, y: p.y,
+    vx: vx, vy: vy,
+    r: 7.5,
+    type: type,
+    color: '#f43f5e',
+    name: 'ピンボール',
+    warpCooldown: 0
+  };
+
   if (type === 'SNAKE') {
-    return { x: p.x, y: p.y, vx: vx * 0.9, vy: vy * 0.8, r: 7.5, type: 'SNAKE', color: '#fb923c', name: 'スネーク', waveTimer: Math.random() * 10 };
+    return { ...baseEnemy, vx: vx * 0.9, vy: vy * 0.8, color: '#fb923c', name: 'スネーク', waveTimer: Math.random() * 10 };
   } else if (type === 'HUNTER') {
-    return { x: p.x, y: p.y, vx: vx * 0.75, vy: vy * 0.75, r: 8, type: 'HUNTER', color: '#e11d48', name: 'ハンター' };
+    return { ...baseEnemy, vx: vx * 0.75, vy: vy * 0.75, r: 8, color: '#e11d48', name: 'ハンター' };
   } else if (type === 'WARPER') {
-    return { x: p.x, y: p.y, vx: vx * 0.85, vy: vy * 0.85, r: 7.5, type: 'WARPER', color: '#a855f7', name: 'ワーパー', warpCooldown: 240 };
+    return { ...baseEnemy, vx: vx * 0.85, vy: vy * 0.85, color: '#a855f7', name: 'ワーパー', selfWarpTimer: 240 };
   } else if (type === 'SPLITTER') {
-    return { x: p.x, y: p.y, vx: vx * 0.85, vy: vy * 0.85, r: 9.5, type: 'SPLITTER', color: '#10b981', name: 'スプリッター' };
+    return { ...baseEnemy, vx: vx * 0.85, vy: vy * 0.85, r: 9.5, color: '#10b981', name: 'スプリッター' };
   } else if (type === 'MINI') {
-    return { x: p.x, y: p.y, vx: vx * 1.3, vy: vy * 1.3, r: 5, type: 'MINI', color: '#34d399', name: 'ミニセル' };
+    return { ...baseEnemy, vx: vx * 1.3, vy: vy * 1.3, r: 5, color: '#34d399', name: 'ミニセル' };
   } else if (type === 'RIM') {
-    return { x: p.x, y: p.y, vx: vx * 1.15, vy: vy * 1.15, r: 7, type: 'RIM', color: '#facc15', name: 'リムランナー' };
+    return { ...baseEnemy, vx: vx * 1.15, vy: vy * 1.15, r: 7, color: '#facc15', name: 'リムランナー' };
   } else if (type === 'BOSS') {
     const bp = findSafeEnemySpawn(13);
-    return { x: bp.x, y: bp.y, vx: vx * 0.65, vy: vy * 0.65, r: 13, type: 'BOSS', color: '#ef4444', name: 'ギガボム' };
+    return { ...baseEnemy, x: bp.x, y: bp.y, vx: vx * 0.65, vy: vy * 0.65, r: 13, color: '#ef4444', name: 'ギガボム' };
   } else if (type === 'FAST') {
-    return { x: p.x, y: p.y, vx: vx * 1.25, vy: vy * 1.25, r: 6, type: 'FAST', color: '#38bdf8', name: 'コメット' };
-  } else {
-    return { x: p.x, y: p.y, vx: vx, vy: vy, r: 7.5, type: 'NORMAL', color: '#f43f5e', name: 'ピンボール' };
+    return { ...baseEnemy, vx: vx * 1.25, vy: vy * 1.25, r: 6, color: '#38bdf8', name: 'コメット' };
   }
+  return baseEnemy;
+}
+
+const allItemDefs = [
+  { type: 'SPEED_UP', icon: '⚡', name: 'ターボブースト' },
+  { type: 'FREEZE', icon: '❄', name: '絶対零度ストップ' },
+  { type: 'BOMB', icon: '💣', name: '殲滅ボム' },
+  { type: 'HEART', icon: '💖', name: 'ライフ回復' },
+  { type: 'SHIELD', icon: '🛡', name: '無敵バリア' },
+  { type: 'CUTTER', icon: '✂', name: '水平レーザー結線' },
+  { type: 'PANDORA', icon: '🎁', name: 'パンドラの箱' }
+];
+
+function findEmptyCellForItem() {
+  for (let attempts = 0; attempts < 350; attempts++) {
+    const rx = 5 + Math.floor(Math.random() * (GW - 10));
+    const ry = 8 + Math.floor(Math.random() * (GH - 16));
+    if (grid[ry * GW + rx] === EMPTY) return { gx: rx, gy: ry };
+  }
+  return { gx: Math.floor(GW / 2), gy: Math.floor(GH / 2) };
+}
+
+function spawnRandomItem() {
+  const itDef = allItemDefs[Math.floor(Math.random() * allItemDefs.length)];
+  const cell = findEmptyCellForItem();
+  items.push({ gx: cell.gx, gy: cell.gy, type: itDef.type, icon: itDef.icon, name: itDef.name });
 }
 
 function initStage(stg) {
@@ -633,7 +650,7 @@ function initStage(stg) {
   spawnPoint.x = pSpawn.x;
   spawnPoint.y = pSpawn.y;
 
-  // 敵のランダム編成（ステージ数に応じて最大3体まで）
+  // 敵のランダム編成
   enemies = [];
   const baseSpeed = 1.55 + Math.min(1.2, stg * 0.08);
   const pool = ['NORMAL', 'SNAKE', 'HUNTER', 'WARPER', 'SPLITTER', 'RIM', 'FAST'];
@@ -651,30 +668,10 @@ function initStage(stg) {
     enemies.push(createEnemyByType(pool[Math.floor(Math.random() * pool.length)], baseSpeed));
   }
 
-  // アイテムのランダム配置（1面につき最大2個）
-  const allItemTypes = [
-    { type: 'SPEED_UP', icon: '⚡', name: 'ターボブースト' },
-    { type: 'FREEZE', icon: '❄', name: '絶対零度ストップ' },
-    { type: 'BOMB', icon: '💣', name: '殲滅ボム' },
-    { type: 'HEART', icon: '💖', name: 'ライフ回復' },
-    { type: 'SHIELD', icon: '🛡', name: '無敵バリア' },
-    { type: 'CUTTER', icon: '✂', name: '緊急オート結線' },
-    { type: 'PANDORA', icon: '🎁', name: 'パンドラの箱' }
-  ];
-
-  const findEmptyItemCell = () => {
-    for (let attempts = 0; attempts < 300; attempts++) {
-      const rx = 5 + Math.floor(Math.random() * (GW - 10));
-      const ry = 8 + Math.floor(Math.random() * (GH - 16));
-      if (grid[ry * GW + rx] === EMPTY) return { gx: rx, gy: ry };
-    }
-    return { gx: Math.floor(GW / 2), gy: Math.floor(GH / 2) };
-  };
-
-  for (let i = 0; i < 2; i++) {
-    const itDef = allItemTypes[Math.floor(Math.random() * allItemTypes.length)];
-    const cell = findEmptyItemCell();
-    items.push({ gx: cell.gx, gy: cell.gy, type: itDef.type, icon: itDef.icon, name: itDef.name });
+  // ★変更点2: アイテムの数を1個〜3個のランダム（平均2個）
+  const itemCount = 1 + Math.floor(Math.random() * 3);
+  for (let i = 0; i < itemCount; i++) {
+    spawnRandomItem();
   }
 
   player.vx = 0; player.vy = 0;
@@ -700,7 +697,6 @@ function updateStats() {
   enemyDisp.textContent = `👾×${enemies.length}`;
 }
 
-// 敵が囲まれた時の処理（スプリッター分裂対応）
 function onEnemyKilled(e, spawnedMiniList) {
   sfx.playKill();
   screenShake = 8;
@@ -715,7 +711,6 @@ function onEnemyKilled(e, spawnedMiniList) {
   }
 }
 
-// 囲い込み＆領域塗りつぶし判定
 function fillEnclosedArea() {
   player.trail.forEach(pt => { grid[pt.y * GW + pt.x] = CLAIMED; });
 
@@ -740,7 +735,6 @@ function fillEnclosedArea() {
     survivingEnemies.push(e);
   });
 
-  // 敵が存在する空間をFlood Fill探索
   let head = 0;
   while (head < queue.length) {
     const qx = queue[head++];
@@ -760,7 +754,6 @@ function fillEnclosedArea() {
     }
   }
 
-  // 敵がいない密閉空間を一括で領土化
   for (let y = 0; y < GH; y++) {
     for (let x = 0; x < GW; x++) {
       const idx = y * GW + x;
@@ -770,7 +763,6 @@ function fillEnclosedArea() {
     }
   }
 
-  // 周囲を完全に領土で囲まれた岩塊を粉砕
   let rocksCleared = false;
   for (let y = 0; y < GH; y++) {
     for (let x = 0; x < GW; x++) {
@@ -814,13 +806,11 @@ function fillEnclosedArea() {
     }
   });
 
-  // 分裂した敵を追加（最大4体まで）
   spawnedMini.forEach(m => {
-    if (finalEnemies.length < 4) finalEnemies.push(m);
+    if (finalEnemies.length < 5) finalEnemies.push(m);
   });
   enemies = finalEnemies;
 
-  // 囲まれたアイテムの発動
   items = items.filter(it => {
     if (grid[it.gy * GW + it.gx] === CLAIMED) {
       applyItem(it);
@@ -829,7 +819,6 @@ function fillEnclosedArea() {
     return true;
   });
 
-  // 領土化されたポータルは消滅
   if (portals.length === 2) {
     if (grid[portals[0].gy * GW + portals[0].gx] === CLAIMED ||
         grid[portals[1].gy * GW + portals[1].gx] === CLAIMED) {
@@ -845,6 +834,116 @@ function fillEnclosedArea() {
 
   if (currentAreaPercent >= stageTargetPercent || enemies.length === 0) {
     handleStageClear();
+  }
+}
+
+// ★変更点3: パンドラの箱の効果拡張（全8種のカオス効果）
+function triggerPandoraChaos(it) {
+  const pandoraRoll = Math.floor(Math.random() * 8);
+
+  if (pandoraRoll === 0) {
+    // 1. スーパーノヴァ（超広範囲爆発塗り）
+    sfx.playBuff();
+    screenShake = 10;
+    const cx = it.gx, cy = it.gy;
+    const blastRadius = 13;
+    for (let dy = -blastRadius; dy <= blastRadius; dy++) {
+      for (let dx = -blastRadius; dx <= blastRadius; dx++) {
+        if (Math.hypot(dx, dy) <= blastRadius) {
+          const nx = cx + dx, ny = cy + dy;
+          if (nx >= 0 && nx < GW && ny >= 0 && ny < GH && grid[ny * GW + nx] !== ROCK) {
+            grid[ny * GW + nx] = CLAIMED;
+          }
+        }
+      }
+    }
+    spawnParticles(cx * CELL_SIZE, cy * CELL_SIZE, '#facc15', 35);
+    showBanner("🌟 パンドラ【超新星爆発】超広範囲の領土を一網打尽！", "#facc15");
+
+  } else if (pandoraRoll === 1) {
+    // 2. 領土浸食の呪い（自陣の一部がEMPTYに戻される恐怖）
+    sfx.playDebuff();
+    screenShake = 8;
+    let revertedCount = 0;
+    const rx = 4 + Math.floor(Math.random() * (GW - 8));
+    const ry = 4 + Math.floor(Math.random() * (GH - 8));
+    const radius = 9;
+    for (let dy = -radius; dy <= radius; dy++) {
+      for (let dx = -radius; dx <= radius; dx++) {
+        if (Math.hypot(dx, dy) <= radius) {
+          const nx = rx + dx, ny = ry + dy;
+          // 外周境界線とプレイヤー現在地は保護
+          if (nx > 2 && nx < GW - 3 && ny > 2 && ny < GH - 3) {
+            if (!(nx === player.gx && ny === player.gy) && grid[ny * GW + nx] === CLAIMED) {
+              grid[ny * GW + nx] = EMPTY;
+              revertedCount++;
+            }
+          }
+        }
+      }
+    }
+    spawnParticles(rx * CELL_SIZE, ry * CELL_SIZE, '#a855f7', 25);
+    showBanner("🌋 パンドラ【大地の呪い】獲得した領土が侵食されて消失！", "#c084fc");
+
+  } else if (pandoraRoll === 2) {
+    // 3. アイテムカーニバル（追加で3〜4個のアイテムが出現）
+    sfx.playBuff();
+    const addCount = 3 + Math.floor(Math.random() * 2);
+    for (let i = 0; i < addCount; i++) {
+      spawnRandomItem();
+    }
+    showBanner(`💎 パンドラ【財宝の雨】アイテムが新たに${addCount}個出現！`, "#38bdf8");
+
+  } else if (pandoraRoll === 3) {
+    // 4. モンスターハウス（敵が2体増援・最大5体まで）
+    sfx.playDebuff();
+    screenShake = 9;
+    const baseSpeed = 1.6 + Math.min(1.2, currentStage * 0.08);
+    const types = ['FAST', 'HUNTER', 'SNAKE', 'RIM'];
+    let added = 0;
+    for (let i = 0; i < 2; i++) {
+      if (enemies.length < 5) {
+        enemies.push(createEnemyByType(types[Math.floor(Math.random() * types.length)], baseSpeed));
+        added++;
+      }
+    }
+    showBanner(`🚨 パンドラ【凶宴】空間が裂け、敵が${added}体追加召喚された！`, "#ef4444");
+
+  } else if (pandoraRoll === 4) {
+    // 5. 超神速ゴッドスピード（7秒間ディレイ1・超速）
+    sfx.playBuff();
+    player.speedDelay = 1;
+    setTimeout(() => { player.speedDelay = player.baseDelay; }, 7000);
+    showBanner("⚡ パンドラ【神速の加護】7秒間、超高速移動モード発動！", "#facc15");
+
+  } else if (pandoraRoll === 5) {
+    // 6. 十文字メガレーザー（縦・横ラインを一括領土化）
+    sfx.playBuff();
+    screenShake = 6;
+    for (let x = 0; x < GW; x++) {
+      if (grid[it.gy * GW + x] !== ROCK) grid[it.gy * GW + x] = CLAIMED;
+    }
+    for (let y = 0; y < GH; y++) {
+      if (grid[y * GW + it.gx] !== ROCK) grid[y * GW + it.gx] = CLAIMED;
+    }
+    showBanner("✂ パンドラ【十字メガレーザー】縦横全ラインを一刀両断！", "#22c55e");
+
+  } else if (pandoraRoll === 6) {
+    // 7. メテオフォール（ランダム地点に巨大な岩塊が落下）
+    sfx.playHit();
+    screenShake = 7;
+    const mx = 8 + Math.floor(Math.random() * (GW - 16));
+    const my = 12 + Math.floor(Math.random() * (GH - 24));
+    placeRockCluster(mx, my, 4);
+    spawnParticles(mx * CELL_SIZE, my * CELL_SIZE, '#64748b', 24);
+    showBanner("🪨 パンドラ【隕石飛来】巨大アステロイドが盤面に落着！", "#94a3b8");
+
+  } else {
+    // 8. エリクサーの奇跡（ライフ全回復＆無敵バリア）
+    sfx.playBuff();
+    lives = 5;
+    player.invincibleTimer = 360; // 6秒
+    showBanner("💖 パンドラ【不死鳥の涙】ライフ全快＋6秒間完全無敵！", "#ec4899");
   }
 }
 
@@ -885,38 +984,14 @@ function applyItem(it) {
     showBanner("🛡 無敵バリア展開！(5.5秒間敵を弾く)", "#a855f7");
   } else if (it.type === 'CUTTER') {
     sfx.playBuff();
-    // 周囲にランダムなレーザー十字切り込みを入れて領土拡大
     for (let x = 2; x < GW - 2; x++) {
       if (grid[it.gy * GW + x] === EMPTY || grid[it.gy * GW + x] === MUD) {
         grid[it.gy * GW + x] = CLAIMED;
       }
     }
-    showBanner("✂ レーザーカッターで水平ラインを領土化！", "#22c55e");
+    showBanner("✂ 水平カッターで横ラインを領土化！", "#22c55e");
   } else if (it.type === 'PANDORA') {
-    // パンドラの箱：50%で大領土ボーナス、50%で敵追加召喚（最大4体まで）
-    if (Math.random() < 0.52 || enemies.length >= 4) {
-      sfx.playBuff();
-      const cx = it.gx, cy = it.gy;
-      for (let dy = -8; dy <= 8; dy++) {
-        for (let dx = -8; dx <= 8; dx++) {
-          if (Math.hypot(dx, dy) <= 8) {
-            const nx = cx + dx, ny = cy + dy;
-            if (nx >= 0 && nx < GW && ny >= 0 && ny < GH && grid[ny * GW + nx] !== ROCK) {
-              grid[ny * GW + nx] = CLAIMED;
-            }
-          }
-        }
-      }
-      showBanner("🎁 パンドラの祝福：広範囲を一気に領土化！", "#facc15");
-    } else {
-      sfx.playDebuff();
-      screenShake = 6;
-      const baseSpeed = 1.6 + Math.min(1.2, currentStage * 0.08);
-      const types = ['FAST', 'HUNTER', 'SNAKE', 'RIM'];
-      const newEnemy = createEnemyByType(types[Math.floor(Math.random() * types.length)], baseSpeed);
-      enemies.push(newEnemy);
-      showBanner("⚠ パンドラの災厄：敵が増援された！(最大4体)", "#ef4444");
-    }
+    triggerPandoraChaos(it);
   }
   updateStats();
 }
@@ -960,7 +1035,7 @@ function handleDeath() {
     currentStage = 1;
     lives = 3;
   } else {
-    player.invincibleTimer = 90; // 復帰後1.5秒無敵
+    player.invincibleTimer = 90;
     let found = false;
     for (let r = 0; r < Math.max(GW, GH) && !found; r++) {
       for (let dy = -r; dy <= r && !found; dy++) {
@@ -989,7 +1064,6 @@ function updatePlayer() {
   if (player.invincibleTimer > 0) player.invincibleTimer--;
   if (player.warpCooldown > 0) player.warpCooldown--;
 
-  // 減速沼（MUD）の上では速度低下
   const onMud = (grid[player.gy * GW + player.gx] === MUD);
   const currentDelay = onMud ? player.speedDelay + 2 : player.speedDelay;
 
@@ -1012,7 +1086,6 @@ function updatePlayer() {
 
   const target = grid[ny * GW + nx];
 
-  // 岩（ROCK）および自分の線（TRAIL）は死なずに止まる安全壁
   if (target === ROCK || target === TRAIL) {
     player.vx = 0; player.vy = 0;
     player.nextVx = 0; player.nextVy = 0;
@@ -1022,18 +1095,20 @@ function updatePlayer() {
   player.gx = nx;
   player.gy = ny;
 
-  // ワームホール（ポータル）突入判定
+  // プレイヤーのワープ判定
   if (portals.length === 2 && player.warpCooldown === 0) {
     const p0 = portals[0], p1 = portals[1];
     if (Math.hypot(player.gx - p0.gx, player.gy - p0.gy) <= 2) {
       sfx.playWarp();
       player.gx = p1.gx; player.gy = p1.gy;
-      player.warpCooldown = 25;
+      player.warpCooldown = 30;
+      spawnParticles(player.gx * CELL_SIZE, player.gy * CELL_SIZE, p1.color, 12);
       showBanner("🌀 ワームホールで空間跳躍！", "#06b6d4");
     } else if (Math.hypot(player.gx - p1.gx, player.gy - p1.gy) <= 2) {
       sfx.playWarp();
       player.gx = p0.gx; player.gy = p0.gy;
-      player.warpCooldown = 25;
+      player.warpCooldown = 30;
+      spawnParticles(player.gx * CELL_SIZE, player.gy * CELL_SIZE, p0.color, 12);
       showBanner("🌀 ワームホールで空間跳躍！", "#f97316");
     }
   }
@@ -1055,13 +1130,41 @@ function updatePlayer() {
 function updateEnemies() {
   enemies.forEach(e => {
     if (e.vx === 0 && e.vy === 0) return;
+    if (e.warpCooldown > 0) e.warpCooldown--;
 
     const egx = Math.max(0, Math.min(GW - 1, Math.floor(e.x / CELL_SIZE)));
     const egy = Math.max(0, Math.min(GH - 1, Math.floor(e.y / CELL_SIZE)));
     const inMud = (grid[egy * GW + egx] === MUD);
     const mudFactor = inMud ? 0.55 : 1.0;
 
-    // 行動AIタイプ別アップデート
+    // ★変更点1: 敵のワープゾーン通過判定
+    if (portals.length === 2 && e.warpCooldown === 0) {
+      const p0 = portals[0], p1 = portals[1];
+      const p0x = p0.gx * CELL_SIZE + CELL_SIZE / 2;
+      const p0y = p0.gy * CELL_SIZE + CELL_SIZE / 2;
+      const p1x = p1.gx * CELL_SIZE + CELL_SIZE / 2;
+      const p1y = p1.gy * CELL_SIZE + CELL_SIZE / 2;
+
+      if (Math.hypot(e.x - p0x, e.y - p0y) < e.r + 7) {
+        sfx.playWarp();
+        spawnParticles(e.x, e.y, p0.color, 10);
+        e.x = p1x;
+        e.y = p1y;
+        e.warpCooldown = 40;
+        spawnParticles(e.x, e.y, p1.color, 14);
+        showBanner(`🌀 ${e.name} がワープホールに吸い込まれた！`, "#38bdf8");
+      } else if (Math.hypot(e.x - p1x, e.y - p1y) < e.r + 7) {
+        sfx.playWarp();
+        spawnParticles(e.x, e.y, p1.color, 10);
+        e.x = p0x;
+        e.y = p0y;
+        e.warpCooldown = 40;
+        spawnParticles(e.x, e.y, p0.color, 14);
+        showBanner(`🌀 ${e.name} がワープホールに吸い込まれた！`, "#f97316");
+      }
+    }
+
+    // 各敵タイプの独自AI行動
     if (e.type === 'SNAKE') {
       e.waveTimer = (e.waveTimer || 0) + 0.1;
       e.vx += Math.cos(e.waveTimer) * 0.08;
@@ -1075,7 +1178,6 @@ function updateEnemies() {
       const spd = Math.hypot(e.vx, e.vy);
       if (spd > 2.3) { e.vx = (e.vx / spd) * 2.3; e.vy = (e.vy / spd) * 2.3; }
     } else if (e.type === 'RIM') {
-      // 領土の境界付近で加速する性質
       let nearWall = false;
       for (let dy = -2; dy <= 2; dy++) {
         for (let dx = -2; dx <= 2; dx++) {
@@ -1091,13 +1193,13 @@ function updateEnemies() {
         e.vy += Math.sin(angle) * 0.04;
       }
     } else if (e.type === 'WARPER') {
-      e.warpCooldown--;
-      if (e.warpCooldown <= 0) {
+      e.selfWarpTimer = (e.selfWarpTimer || 240) - 1;
+      if (e.selfWarpTimer <= 0) {
         spawnParticles(e.x, e.y, '#a855f7', 10);
         const wp = findSafeEnemySpawn(e.r);
         e.x = wp.x; e.y = wp.y;
         spawnParticles(e.x, e.y, '#a855f7', 10);
-        e.warpCooldown = 240 + Math.floor(Math.random() * 90);
+        e.selfWarpTimer = 240 + Math.floor(Math.random() * 90);
       }
     }
 
@@ -1112,7 +1214,6 @@ function updateEnemies() {
     const gx = Math.floor(e.x / CELL_SIZE);
     const gy = Math.floor(e.y / CELL_SIZE);
 
-    // 領土・岩での物理バウンド＆ハメ込み判定
     const checkRadius = Math.ceil(e.r / CELL_SIZE) + 1;
     let bouncedX = false, bouncedY = false;
 
@@ -1142,7 +1243,6 @@ function updateEnemies() {
             }
           }
 
-          // プレイヤーの引いている線（TRAIL）に触れた場合
           if (cell === TRAIL && dist < e.r + CELL_SIZE * 0.4) {
             if (player.invincibleTimer > 0) {
               e.vx *= -1; e.vy *= -1;
@@ -1155,7 +1255,6 @@ function updateEnemies() {
       }
     }
 
-    // プレイヤー本体との接触判定
     const pRealX = player.gx * CELL_SIZE + CELL_SIZE / 2;
     const pRealY = player.gy * CELL_SIZE + CELL_SIZE / 2;
     if (!player.inClaimed && Math.hypot(e.x - pRealX, e.y - pRealY) < e.r + CELL_SIZE * 0.5) {
@@ -1181,7 +1280,6 @@ function draw() {
   ctx.fillStyle = stageTheme.bg;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  // グリッドのセル描画
   for (let y = 0; y < GH; y++) {
     for (let x = 0; x < GW; x++) {
       const c = grid[y * GW + x];
@@ -1205,7 +1303,7 @@ function draw() {
     }
   }
 
-  // ワームホール描画
+  // ポータル描画（渦巻きアニメーション）
   const pulse = Math.sin(Date.now() * 0.008) * 2;
   portals.forEach(p => {
     const px = p.gx * CELL_SIZE + CELL_SIZE / 2;
@@ -1253,7 +1351,6 @@ function draw() {
       ctx.stroke();
     }
 
-    // 目
     ctx.fillStyle = '#ffffff';
     ctx.beginPath();
     ctx.arc(-e.r * 0.35, -e.r * 0.15, e.r * 0.28, 0, Math.PI * 2);
@@ -1303,7 +1400,7 @@ function draw() {
   ctx.fillStyle = '#0f172a';
   ctx.fillRect(px + 1, py + 1, 2, 2);
 
-  // フローティング・タッチガイド描画
+  // フローティング・タッチガイド
   if (touchGuide.active && isPlaying) {
     ctx.save();
     ctx.beginPath();
@@ -1347,7 +1444,6 @@ function setDirection(x, y) {
   player.nextVy = y;
 }
 
-// PC用キーボード操作
 window.addEventListener('keydown', e => {
   if (!isPlaying && (e.code === 'Space' || e.code === 'Enter')) {
     triggerStartGame();
@@ -1359,7 +1455,6 @@ window.addEventListener('keydown', e => {
   if (['ArrowRight', 'KeyD'].includes(e.code)) { setDirection(1, 0); e.preventDefault(); }
 });
 
-// キャンバス座標変換ヘルパー
 function getCanvasCoords(clientX, clientY) {
   const rect = canvas.getBoundingClientRect();
   return {
@@ -1368,7 +1463,6 @@ function getCanvasCoords(clientX, clientY) {
   };
 }
 
-// iPhone 15 親指スワイプ操作
 let touchStartX = 0, touchStartY = 0;
 
 canvas.addEventListener('touchstart', e => {
@@ -1396,7 +1490,6 @@ canvas.addEventListener('touchmove', e => {
   touchGuide.curX = cPos.x;
   touchGuide.curY = cPos.y;
 
-  // 10pxの小さな親指スライドで即座に反応
   if (Math.hypot(dx, dy) > 10) {
     if (Math.abs(dx) > Math.abs(dy)) setDirection(dx > 0 ? 1 : -1, 0);
     else setDirection(0, dy > 0 ? 1 : -1);
@@ -1411,7 +1504,6 @@ canvas.addEventListener('touchend', () => {
   touchGuide.active = false;
 }, { passive: true });
 
-// --- スタートボタン＆オーバーレイの確実なタップ開始処理 (iOS Safari 完全対応) ---
 let lastStartTime = 0;
 function triggerStartGame(e) {
   if (e) {
@@ -1419,7 +1511,7 @@ function triggerStartGame(e) {
     e.stopPropagation();
   }
   const now = Date.now();
-  if (now - lastStartTime < 300) return; // 二重発火防止
+  if (now - lastStartTime < 300) return;
   lastStartTime = now;
 
   if (isPlaying) return;
@@ -1430,14 +1522,12 @@ function triggerStartGame(e) {
   draw();
 }
 
-// オーバーレイ全体＆ボタンに対して touchend / pointerup / click すべてをバインド
 overlay.addEventListener('touchend', triggerStartGame, { passive: false });
 overlay.addEventListener('pointerup', triggerStartGame);
 overlay.addEventListener('click', triggerStartGame);
 startBtn.addEventListener('touchend', triggerStartGame, { passive: false });
 startBtn.addEventListener('click', triggerStartGame);
 
-// 初期描画
 initStage(1);
 draw();
 requestAnimationFrame(gameLoop);
