@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Qix Infinite 15 - Deluxe</title>
+<title>Qix Infinite 15 - Overheat & Needle Edition</title>
 <style>
   * {
     box-sizing: border-box;
@@ -31,10 +31,10 @@
     flex-direction: column;
     align-items: center;
     justify-content: space-between;
-    padding-top: calc(max(8px, env(safe-area-inset-top)));
-    padding-bottom: calc(max(10px, env(safe-area-inset-bottom)));
-    padding-left: 10px;
-    padding-right: 10px;
+    padding-top: calc(max(6px, env(safe-area-inset-top)));
+    padding-bottom: calc(max(6px, env(safe-area-inset-bottom)));
+    padding-left: 8px;
+    padding-right: 8px;
   }
   header {
     width: 100%;
@@ -42,19 +42,19 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 8px 14px;
-    background: rgba(15, 23, 42, 0.9);
+    padding: 6px 12px;
+    background: rgba(15, 23, 42, 0.94);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
-    border-radius: 16px;
+    border-radius: 14px;
     border: 1px solid rgba(56, 189, 248, 0.25);
-    box-shadow: 0 4px 20px rgba(0,0,0,0.7);
+    box-shadow: 0 4px 18px rgba(0,0,0,0.7);
     flex-shrink: 0;
     z-index: 5;
   }
   .stat-col { display: flex; flex-direction: column; align-items: center; }
-  .stat-label { font-size: 10px; color: #94a3b8; font-weight: 700; letter-spacing: 0.5px; }
-  .stat-val { font-size: 16px; font-weight: 900; color: #38bdf8; font-variant-numeric: tabular-nums; }
+  .stat-label { font-size: 9px; color: #94a3b8; font-weight: 700; letter-spacing: 0.5px; }
+  .stat-val { font-size: 15px; font-weight: 900; color: #38bdf8; font-variant-numeric: tabular-nums; }
   .stat-sub { font-size: 11px; color: #fbbf24; font-weight: 800; }
 
   #game-wrapper {
@@ -65,19 +65,19 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    margin: 6px 0;
+    margin: 4px 0;
     overflow: hidden;
   }
   #canvas-container {
     position: relative;
     height: 100%;
     max-width: 100%;
-    aspect-ratio: 54 / 117; /* iPhone 15 縦長比率 (9:19.5) */
+    aspect-ratio: 54 / 117;
     background: #020617;
     border: 2px solid #334155;
-    border-radius: 20px;
+    border-radius: 18px;
     overflow: hidden;
-    box-shadow: 0 12px 40px rgba(0,0,0,0.9);
+    box-shadow: 0 10px 36px rgba(0,0,0,0.9);
     touch-action: none;
   }
   canvas {
@@ -87,33 +87,111 @@
     image-rendering: pixelated;
   }
 
+  /* 画面下部のアクションコントロールバー */
+  #action-bar {
+    width: 100%;
+    max-width: 430px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 12px;
+    gap: 10px;
+    flex-shrink: 0;
+    z-index: 5;
+  }
+  .skill-container {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+  .skill-label-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 10px;
+    font-weight: 800;
+    color: #94a3b8;
+  }
+  .skill-bar-bg {
+    width: 100%;
+    height: 10px;
+    background: #0f172a;
+    border-radius: 6px;
+    overflow: hidden;
+    border: 1px solid #334155;
+    position: relative;
+  }
+  .skill-bar-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #38bdf8, #f59e0b, #ef4444);
+    box-shadow: 0 0 10px rgba(239, 68, 68, 0.7);
+    transition: width 0.05s linear, background 0.3s;
+  }
+  .skill-bar-fill.overheated {
+    background: #ef4444 !important;
+    animation: flashHeat 0.3s infinite alternate;
+  }
+  @keyframes flashHeat {
+    from { opacity: 0.6; }
+    to { opacity: 1; }
+  }
+
+  .boost-btn {
+    flex-shrink: 0;
+    background: linear-gradient(135deg, #0284c7, #2563eb);
+    border: 1px solid rgba(255,255,255,0.4);
+    color: #fff;
+    padding: 8px 18px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 900;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(37, 99, 235, 0.45);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: transform 0.08s, filter 0.2s;
+  }
+  .boost-btn.active {
+    background: linear-gradient(135deg, #f59e0b, #ea580c);
+    box-shadow: 0 0 16px rgba(245, 158, 11, 0.8);
+    transform: scale(0.96);
+  }
+  .boost-btn:disabled {
+    opacity: 0.45;
+    filter: grayscale(1);
+    cursor: not-allowed;
+    box-shadow: none;
+  }
+
   #overlay {
     position: absolute;
     inset: 0;
-    background: rgba(4, 7, 18, 0.92);
+    background: rgba(4, 7, 18, 0.94);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 22px;
+    padding: 20px;
     text-align: center;
     z-index: 30;
     cursor: pointer;
     touch-action: manipulation;
   }
   #overlay h2 {
-    font-size: 24px;
+    font-size: 22px;
     color: #38bdf8;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
     font-weight: 900;
     text-shadow: 0 0 12px rgba(56, 189, 248, 0.5);
   }
   #overlay p {
-    font-size: 13px;
+    font-size: 12px;
     color: #cbd5e1;
-    margin-bottom: 18px;
+    margin-bottom: 14px;
     line-height: 1.6;
     white-space: pre-line;
   }
@@ -122,33 +200,33 @@
     flex-wrap: wrap;
     gap: 6px;
     justify-content: center;
-    margin-bottom: 20px;
+    margin-bottom: 18px;
   }
   .badge {
-    font-size: 11px;
+    font-size: 10px;
     background: rgba(30, 41, 59, 0.9);
     border: 1px solid #475569;
     color: #e2e8f0;
-    padding: 4px 9px;
-    border-radius: 12px;
+    padding: 3px 8px;
+    border-radius: 10px;
     font-weight: 700;
   }
   .btn {
     background: linear-gradient(135deg, #0284c7, #2563eb);
     color: #fff;
-    font-size: 17px;
+    font-size: 15px;
     font-weight: 900;
-    padding: 14px 42px;
+    padding: 12px 34px;
     border: 1px solid rgba(255,255,255,0.25);
-    border-radius: 32px;
+    border-radius: 28px;
     cursor: pointer;
-    box-shadow: 0 6px 22px rgba(14, 165, 233, 0.5);
+    box-shadow: 0 6px 20px rgba(14, 165, 233, 0.5);
     transition: transform 0.1s;
     pointer-events: auto;
   }
   .btn:active { transform: scale(0.94); }
   .tap-hint {
-    margin-top: 12px;
+    margin-top: 10px;
     font-size: 11px;
     color: #64748b;
     animation: pulse 1.6s infinite;
@@ -160,15 +238,15 @@
 
   .msg-banner {
     position: absolute;
-    top: 14px;
+    top: 12px;
     left: 50%;
     transform: translateX(-50%);
     background: rgba(15, 23, 42, 0.95);
-    padding: 6px 14px;
-    border-radius: 20px;
+    padding: 5px 12px;
+    border-radius: 18px;
     border: 1px solid #38bdf8;
     color: #facc15;
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 800;
     pointer-events: none;
     opacity: 0;
@@ -184,7 +262,7 @@
 <header>
   <div class="stat-col">
     <span class="stat-label">STAGE / BEST</span>
-    <span class="stat-val" id="stage-disp">1 <small style="font-size:11px;color:#64748b;">(MAX 1)</small></span>
+    <span class="stat-val" id="stage-disp">1 <small style="font-size:10px;color:#64748b;">(MAX 1)</small></span>
   </div>
   <div class="stat-col">
     <span class="stat-label">領土 (目標 <span id="target-disp">72%</span>)</span>
@@ -205,20 +283,35 @@
     <div id="msg-banner" class="msg-banner">敵を撃破！</div>
 
     <div id="overlay">
-      <h2 id="ov-title">QIX INFINITE 15</h2>
-      <p id="ov-desc">画面をスワイプして陣地を広げ、敵を囲い込め！
-敵もワープホールを利用して空間跳躍します。
-パンドラの箱は何が起きるか分からない超絶カオス仕様！</p>
+      <h2 id="ov-title">QIX INFINITE 15 - OVERHEAT</h2>
+      <p id="ov-desc">スワイプで領土を獲得せよ！
+Space/ブーストボタンで任意のタイミングで加速可能！
+（無敵ではないため突っ込みすぎに注意。100%でオーバーヒート）
+新アイテム「📌棘クリスタル」を囲むとゆっくり敵を追尾して迎撃！
+パンドラの箱の財宝は飛翔アニメーションで確実に盤面に溢れ出します！</p>
       <div class="feature-badges">
-        <span class="badge">🌀 敵味方両用ワープ</span>
-        <span class="badge">🎁 カオス・パンドラ箱</span>
-        <span class="badge">🟣 減速沼ゾーン</span>
-        <span class="badge">🪨 岩ハメ＆包囲粉砕</span>
+        <span class="badge">⚡ 任意ブースト (無敵なし/熱管理)</span>
+        <span class="badge">🔥 100%でオーバーヒートロック</span>
+        <span class="badge">📌 棘クリスタル迎撃システム</span>
+        <span class="badge">💎 パンドラ財宝飛翔湧出 (確実生成)</span>
       </div>
       <button type="button" class="btn" id="start-btn">ゲームスタート</button>
-      <div class="tap-hint">画面をタップして開始</div>
+      <div class="tap-hint">画面タップで開始 (PC: 矢印/WASD + Spaceブースト)</div>
     </div>
   </div>
+</div>
+
+<div id="action-bar">
+  <div class="skill-container">
+    <div class="skill-label-row">
+      <span id="boost-status-title">⚡ エンジン熱量 (HEAT)</span>
+      <span id="burst-status-text">COOL 0%</span>
+    </div>
+    <div class="skill-bar-bg">
+      <div id="skill-bar-fill" class="skill-bar-fill"></div>
+    </div>
+  </div>
+  <button type="button" id="boost-btn" class="boost-btn">⚡ BOOST</button>
 </div>
 
 <script>
@@ -249,15 +342,33 @@ class SoundSystem {
       osc.start(); osc.stop(this.ctx.currentTime + duration);
     } catch (e) {}
   }
-  playLine() { this.playTone(560, 'square', 0.02, 0.015); }
+  playLine() { this.playTone(560, 'square', 0.02, 0.012); }
   playWarp() {
-    [350, 700, 1050].forEach((f, i) => setTimeout(() => this.playTone(f, 'sine', 0.08, 0.06), i * 25));
+    [350, 700, 1050].forEach((f, i) => setTimeout(() => this.playTone(f, 'sine', 0.08, 0.05), i * 25));
   }
   playCut() {
-    [440, 587, 659, 880].forEach((f, i) => setTimeout(() => this.playTone(f, 'triangle', 0.1, 0.06), i * 30));
+    [440, 587, 659, 880].forEach((f, i) => setTimeout(() => this.playTone(f, 'triangle', 0.09, 0.06), i * 25));
   }
   playKill() {
     [240, 480, 720, 1100].forEach((f, i) => setTimeout(() => this.playTone(f, 'sawtooth', 0.14, 0.08), i * 35));
+  }
+  playThornSpawn() {
+    [300, 450, 600, 750].forEach((f, i) => setTimeout(() => this.playTone(f, 'sine', 0.08, 0.05), i * 35));
+  }
+  playThornHit() {
+    this.playTone(200, 'square', 0.12, 0.08);
+  }
+  playOverheat() {
+    this.playTone(160, 'sawtooth', 0.35, 0.12);
+  }
+  playCooldownComplete() {
+    [520, 680, 840].forEach((f, i) => setTimeout(() => this.playTone(f, 'triangle', 0.08, 0.05), i * 40));
+  }
+  playDangerWarning() {
+    this.playTone(880, 'sine', 0.04, 0.04);
+  }
+  playItemPop() {
+    [660, 990, 1320].forEach((f, i) => setTimeout(() => this.playTone(f, 'sine', 0.06, 0.05), i * 25));
   }
   playBuff() {
     [523, 659, 783, 1046].forEach((f, i) => setTimeout(() => this.playTone(f, 'sine', 0.12, 0.07), i * 30));
@@ -285,7 +396,7 @@ class SoundSystem {
 }
 const sfx = new SoundSystem();
 
-// --- 定数・グリッド定義 (iPhone 15 アスペクト比 54 x 117) ---
+// --- 定数・グリッド定義 (54 x 117) ---
 const GW = 54;
 const GH = 117;
 const CELL_SIZE = 5;
@@ -293,8 +404,8 @@ const CELL_SIZE = 5;
 const EMPTY = 0;   // 未開拓
 const CLAIMED = 1; // 獲得領土
 const TRAIL = 2;   // 描画中の線
-const ROCK = 3;    // 岩（反射壁＆包囲で粉砕）
-const MUD = 4;     // 減速沼
+const ROCK = 3;    // 岩
+const MUD = 4;     // 減速泥沼
 
 let grid = new Uint8Array(GW * GH);
 let currentStage = 1;
@@ -304,9 +415,11 @@ let isPlaying = false;
 let currentAreaPercent = 0;
 let stageTargetPercent = 72;
 let screenShake = 0;
+let dangerBeepCooldown = 0;
 
 let spawnPoint = { x: 2, y: 2 };
 
+// プレイヤー管理
 let player = {
   gx: 0, gy: 0,
   vx: 0, vy: 0,
@@ -320,9 +433,26 @@ let player = {
   warpCooldown: 0
 };
 
+// --- オーバーヒート型ブーストシステム ---
+let isBoosting = false;
+let heatMeter = 0;             // 0 ～ 100
+let isOverheated = false;      // 100になるとオーバーヒートペナルティ
+const HEAT_GENERATE_RATE = 1.05; // ブースト中の発熱
+const HEAT_COOL_NORMAL = 0.24;   // 通常時の冷却速度 (そこそこ時間がかかる)
+const HEAT_COOL_PENALTY = 0.18;  // オーバーヒート中の冷却速度
+
+// --- 棘（Thorn Projectiles）の管理 ---
+let activeThorns = [];
+
+// --- 飛翔中アイテム（アニメーションして着地するアイテム） ---
+let flyingItems = [];
+
+// 保留中アイテム生成キュー（fillEnclosedArea中の即時削除バグを完全に防止）
+let pendingItemsToSpawn = [];
+
 let enemies = [];
 let items = [];
-let portals = [];     // ワームホールペア
+let portals = [];
 let particles = [];
 let touchGuide = { active: false, x: 0, y: 0, curX: 0, curY: 0 };
 
@@ -338,12 +468,16 @@ const overlay = document.getElementById('overlay');
 const ovTitle = document.getElementById('ov-title');
 const ovDesc = document.getElementById('ov-desc');
 const startBtn = document.getElementById('start-btn');
+const boostBtn = document.getElementById('boost-btn');
 const areaDisp = document.getElementById('area-disp');
 const stageDisp = document.getElementById('stage-disp');
 const lifeDisp = document.getElementById('life-disp');
 const enemyDisp = document.getElementById('enemy-disp');
 const targetDisp = document.getElementById('target-disp');
 const msgBanner = document.getElementById('msg-banner');
+const skillBarFill = document.getElementById('skill-bar-fill');
+const burstStatusText = document.getElementById('burst-status-text');
+const boostStatusTitle = document.getElementById('boost-status-title');
 
 let bannerTimeout = null;
 function showBanner(text, color="#facc15") {
@@ -351,18 +485,18 @@ function showBanner(text, color="#facc15") {
   msgBanner.style.color = color;
   msgBanner.style.borderColor = color;
   msgBanner.style.opacity = '1';
-  msgBanner.style.transform = 'translate(-50%, 0) scale(1.04)';
+  msgBanner.style.transform = 'translate(-50%, 0) scale(1.03)';
   if (bannerTimeout) clearTimeout(bannerTimeout);
   bannerTimeout = setTimeout(() => {
     msgBanner.style.opacity = '0';
     msgBanner.style.transform = 'translate(-50%, -4px) scale(0.98)';
-  }, 2200);
+  }, 2400);
 }
 
 function spawnParticles(px, py, color, count=18) {
   for (let i = 0; i < count; i++) {
     const angle = Math.random() * Math.PI * 2;
-    const speed = 1 + Math.random() * 3.5;
+    const speed = 0.8 + Math.random() * 3.2;
     particles.push({
       x: px, y: py,
       vx: Math.cos(angle) * speed,
@@ -569,11 +703,17 @@ function findSafeEnemySpawn(radius) {
   return { x: GW * CELL_SIZE / 2, y: GH * CELL_SIZE / 2 };
 }
 
-function createEnemyByType(type, baseSpeed, customPos=null) {
+function createEnemyByType(type, baseSpeed, customPos=null, customVel=null) {
   const p = customPos || findSafeEnemySpawn(8);
-  const angle = (Math.floor(Math.random() * 4) * Math.PI / 2) + (Math.PI / 4);
-  const vx = Math.cos(angle) * baseSpeed;
-  const vy = Math.sin(angle) * baseSpeed;
+  let vx, vy;
+  if (customVel) {
+    vx = customVel.vx;
+    vy = customVel.vy;
+  } else {
+    const angle = (Math.floor(Math.random() * 4) * Math.PI / 2) + (Math.PI / 4);
+    vx = Math.cos(angle) * baseSpeed;
+    vy = Math.sin(angle) * baseSpeed;
+  }
 
   const baseEnemy = {
     x: p.x, y: p.y,
@@ -582,7 +722,8 @@ function createEnemyByType(type, baseSpeed, customPos=null) {
     type: type,
     color: '#f43f5e',
     name: 'ピンボール',
-    warpCooldown: 0
+    warpCooldown: 0,
+    splitCooldown: 0
   };
 
   if (type === 'SNAKE') {
@@ -592,14 +733,23 @@ function createEnemyByType(type, baseSpeed, customPos=null) {
   } else if (type === 'WARPER') {
     return { ...baseEnemy, vx: vx * 0.85, vy: vy * 0.85, color: '#a855f7', name: 'ワーパー', selfWarpTimer: 240 };
   } else if (type === 'SPLITTER') {
-    return { ...baseEnemy, vx: vx * 0.85, vy: vy * 0.85, r: 9.5, color: '#10b981', name: 'スプリッター' };
+    return { ...baseEnemy, vx: vx * 0.85, vy: vy * 0.85, r: 9.5, color: '#10b981', name: 'スプリッター', splitCooldown: 40 };
   } else if (type === 'MINI') {
-    return { ...baseEnemy, vx: vx * 1.3, vy: vy * 1.3, r: 5, color: '#34d399', name: 'ミニセル' };
+    return { ...baseEnemy, vx: vx * 1.25, vy: vy * 1.25, r: 5, color: '#34d399', name: 'ミニセル', mergeCooldown: 80 };
   } else if (type === 'RIM') {
     return { ...baseEnemy, vx: vx * 1.15, vy: vy * 1.15, r: 7, color: '#facc15', name: 'リムランナー' };
   } else if (type === 'BOSS') {
-    const bp = findSafeEnemySpawn(13);
-    return { ...baseEnemy, x: bp.x, y: bp.y, vx: vx * 0.65, vy: vy * 0.65, r: 13, color: '#ef4444', name: 'ギガボム' };
+    const bp = customPos || findSafeEnemySpawn(14);
+    return {
+      ...baseEnemy,
+      x: bp.x, y: bp.y,
+      vx: vx * 0.65, vy: vy * 0.65,
+      r: 14,
+      color: '#ef4444',
+      name: 'ギガボム(BOSS)',
+      spitTimer: 200,
+      chargeTimer: 0
+    };
   } else if (type === 'FAST') {
     return { ...baseEnemy, vx: vx * 1.25, vy: vy * 1.25, r: 6, color: '#38bdf8', name: 'コメット' };
   }
@@ -613,31 +763,93 @@ const allItemDefs = [
   { type: 'HEART', icon: '💖', name: 'ライフ回復' },
   { type: 'SHIELD', icon: '🛡', name: '無敵バリア' },
   { type: 'CUTTER', icon: '✂', name: '水平レーザー結線' },
+  { type: 'THORN', icon: '📌', name: '棘クリスタル' }, // 棘を発射して迎撃
   { type: 'PANDORA', icon: '🎁', name: 'パンドラの箱' }
 ];
 
-function findEmptyCellForItem() {
-  for (let attempts = 0; attempts < 350; attempts++) {
-    const rx = 5 + Math.floor(Math.random() * (GW - 10));
-    const ry = 8 + Math.floor(Math.random() * (GH - 16));
-    if (grid[ry * GW + rx] === EMPTY) return { gx: rx, gy: ry };
+// --- 確実なアイテム空きセル探索（盤面が60%以上埋まっていても全マス探索で100%ヒット） ---
+function getAllValidEmptyCells(excludeItems = true) {
+  const candidates = [];
+  const occupied = new Set();
+  if (excludeItems) {
+    items.forEach(it => occupied.add(`${it.gx},${it.gy}`));
+    flyingItems.forEach(fi => occupied.add(`${fi.targetGx},${fi.targetGy}`));
   }
-  return { gx: Math.floor(GW / 2), gy: Math.floor(GH / 2) };
+
+  for (let y = 3; y < GH - 3; y++) {
+    for (let x = 3; x < GW - 3; x++) {
+      const idx = y * GW + x;
+      if (grid[idx] === EMPTY) {
+        if (!occupied.has(`${x},${y}`)) {
+          candidates.push({ gx: x, gy: y });
+        }
+      }
+    }
+  }
+  return candidates;
 }
 
-function spawnRandomItem() {
-  const itDef = allItemDefs[Math.floor(Math.random() * allItemDefs.length)];
-  const cell = findEmptyCellForItem();
-  items.push({ gx: cell.gx, gy: cell.gy, type: itDef.type, icon: itDef.icon, name: itDef.name });
+function spawnRandomItem(customCell = null, specificType = null, flyingFrom = null) {
+  let cell = customCell;
+  if (!cell) {
+    const list = getAllValidEmptyCells(true);
+    if (list.length === 0) return null;
+    cell = list[Math.floor(Math.random() * list.length)];
+  }
+
+  let itDef = specificType ? allItemDefs.find(d => d.type === specificType) : null;
+  if (!itDef) {
+    itDef = allItemDefs[Math.floor(Math.random() * allItemDefs.length)];
+  }
+
+  // 飛翔アニメーション指定がある場合（パンドラの箱からの噴出）
+  if (flyingFrom) {
+    flyingItems.push({
+      startX: flyingFrom.x,
+      startY: flyingFrom.y,
+      x: flyingFrom.x,
+      y: flyingFrom.y,
+      targetGx: cell.gx,
+      targetGy: cell.gy,
+      targetX: cell.gx * CELL_SIZE + CELL_SIZE / 2,
+      targetY: cell.gy * CELL_SIZE + CELL_SIZE / 2,
+      progress: 0,
+      speed: 0.035 + Math.random() * 0.02,
+      arcHeight: 25 + Math.random() * 30,
+      type: itDef.type,
+      icon: itDef.icon,
+      name: itDef.name
+    });
+    return null;
+  }
+
+  const newItem = {
+    gx: cell.gx,
+    gy: cell.gy,
+    type: itDef.type,
+    icon: itDef.icon,
+    name: itDef.name,
+    spawnAnim: 1.0
+  };
+  items.push(newItem);
+  spawnParticles(cell.gx * CELL_SIZE + CELL_SIZE / 2, cell.gy * CELL_SIZE + CELL_SIZE / 2, '#38bdf8', 10);
+  return newItem;
 }
 
 function initStage(stg) {
   grid.fill(EMPTY);
   items = [];
+  flyingItems = [];
+  pendingItemsToSpawn = [];
   particles = [];
+  activeThorns = [];
   player.speedDelay = player.baseDelay;
   player.invincibleTimer = 0;
   player.warpCooldown = 0;
+
+  isBoosting = false;
+  heatMeter = 0;
+  isOverheated = false;
 
   stageTargetPercent = Math.min(80, 70 + Math.floor(stg / 2));
   targetDisp.textContent = `${stageTargetPercent}%`;
@@ -650,26 +862,29 @@ function initStage(stg) {
   spawnPoint.x = pSpawn.x;
   spawnPoint.y = pSpawn.y;
 
-  // 敵のランダム編成
+  // 敵の編成
   enemies = [];
   const baseSpeed = 1.55 + Math.min(1.2, stg * 0.08);
-  const pool = ['NORMAL', 'SNAKE', 'HUNTER', 'WARPER', 'SPLITTER', 'RIM', 'FAST'];
+  const pool = ['SPLITTER', 'SNAKE', 'HUNTER', 'WARPER', 'RIM', 'FAST'];
 
-  if (stg % 4 === 0) {
+  if (stg % 3 === 0) {
     enemies.push(createEnemyByType('BOSS', baseSpeed));
   } else {
-    enemies.push(createEnemyByType(pool[Math.floor(Math.random() * pool.length)], baseSpeed));
+    enemies.push(createEnemyByType(Math.random() < 0.6 ? 'SPLITTER' : pool[Math.floor(Math.random() * pool.length)], baseSpeed));
   }
 
-  if (stg >= 2 || Math.random() < 0.5) {
+  if (stg >= 2 || Math.random() < 0.6) {
     enemies.push(createEnemyByType(pool[Math.floor(Math.random() * pool.length)], baseSpeed));
   }
   if (stg >= 4) {
     enemies.push(createEnemyByType(pool[Math.floor(Math.random() * pool.length)], baseSpeed));
   }
 
-  // ★変更点2: アイテムの数を1個〜3個のランダム（平均2個）
-  const itemCount = 1 + Math.floor(Math.random() * 3);
+  // 確定で新アイテム「THORN」と「PANDORA」を配置
+  spawnRandomItem(null, 'THORN');
+  spawnRandomItem(null, 'PANDORA');
+
+  const itemCount = 1 + Math.floor(Math.random() * 2);
   for (let i = 0; i < itemCount; i++) {
     spawnRandomItem();
   }
@@ -695,6 +910,35 @@ function updateStats() {
   stageDisp.innerHTML = `${currentStage} <small style="font-size:10px;color:#94a3b8;">(MAX ${highestStage})</small>`;
   lifeDisp.textContent = '❤'.repeat(Math.max(0, lives));
   enemyDisp.textContent = `👾×${enemies.length}`;
+
+  // ヒートメーターUI更新
+  const pct = Math.floor(heatMeter);
+  skillBarFill.style.width = `${pct}%`;
+
+  if (isOverheated) {
+    boostStatusTitle.textContent = "🔥 OVERHEAT! (強制冷却中)";
+    boostStatusTitle.style.color = "#ef4444";
+    burstStatusText.textContent = `HOT ${pct}%`;
+    burstStatusText.style.color = "#ef4444";
+    skillBarFill.classList.add('overheated');
+    boostBtn.disabled = true;
+    boostBtn.classList.remove('active');
+  } else {
+    skillBarFill.classList.remove('overheated');
+    boostStatusTitle.textContent = "⚡ エンジン熱量 (HEAT)";
+    boostStatusTitle.style.color = "#94a3b8";
+
+    if (isBoosting) {
+      burstStatusText.textContent = `BOOSTING! ${pct}%`;
+      burstStatusText.style.color = "#f59e0b";
+      boostBtn.classList.add('active');
+    } else {
+      burstStatusText.textContent = pct > 0 ? `${pct}%` : "READY";
+      burstStatusText.style.color = pct > 75 ? "#f97316" : "#38bdf8";
+      boostBtn.classList.remove('active');
+    }
+    boostBtn.disabled = false;
+  }
 }
 
 function onEnemyKilled(e, spawnedMiniList) {
@@ -704,14 +948,67 @@ function onEnemyKilled(e, spawnedMiniList) {
   if (e.type === 'SPLITTER') {
     showBanner(`💥 スプリッターが分裂した！`, '#10b981');
     const baseSpeed = 1.6 + Math.min(1.2, currentStage * 0.08);
-    spawnedMiniList.push(createEnemyByType('MINI', baseSpeed));
-    spawnedMiniList.push(createEnemyByType('MINI', baseSpeed));
+    spawnedMiniList.push(createEnemyByType('MINI', baseSpeed, { x: e.x - 6, y: e.y }, { vx: -1.4, vy: -1.2 }));
+    spawnedMiniList.push(createEnemyByType('MINI', baseSpeed, { x: e.x + 6, y: e.y }, { vx: 1.4, vy: 1.2 }));
   } else {
     showBanner(`【撃破!!】${e.name} を囲んで倒した！`, '#f43f5e');
   }
 }
 
+function isEnemyEnclosed(e) {
+  const checkPoints = [
+    { x: e.x, y: e.y },
+    { x: e.x - e.r * 0.7, y: e.y },
+    { x: e.x + e.r * 0.7, y: e.y },
+    { x: e.x, y: e.y - e.r * 0.7 },
+    { x: e.x, y: e.y + e.r * 0.7 },
+    { x: e.x - e.r * 0.5, y: e.y - e.r * 0.5 },
+    { x: e.x + e.r * 0.5, y: e.y - e.r * 0.5 },
+    { x: e.x - e.r * 0.5, y: e.y + e.r * 0.5 },
+    { x: e.x + e.r * 0.5, y: e.y + e.r * 0.5 }
+  ];
+
+  let enclosedCount = 0;
+  for (const pt of checkPoints) {
+    const gx = Math.max(0, Math.min(GW - 1, Math.floor(pt.x / CELL_SIZE)));
+    const gy = Math.max(0, Math.min(GH - 1, Math.floor(pt.y / CELL_SIZE)));
+    if (grid[gy * GW + gx] === CLAIMED) {
+      enclosedCount++;
+    }
+  }
+  const centerGx = Math.max(0, Math.min(GW - 1, Math.floor(e.x / CELL_SIZE)));
+  const centerGy = Math.max(0, Math.min(GH - 1, Math.floor(e.y / CELL_SIZE)));
+  return (grid[centerGy * GW + centerGx] === CLAIMED) || (enclosedCount >= 5);
+}
+
+// 棘（Thorn）の発射処理
+function spawnSpikeNeedles(originGx, originGy) {
+  sfx.playThornSpawn();
+  screenShake = 6;
+  showBanner("📌 棘クリスタル起動！ 誘導針が敵を迎撃に向かう！", "#38bdf8");
+
+  const startX = originGx * CELL_SIZE + CELL_SIZE / 2;
+  const startY = originGy * CELL_SIZE + CELL_SIZE / 2;
+
+  const count = 3;
+  for (let i = 0; i < count; i++) {
+    const angle = (i * (Math.PI * 2 / count)) + (Math.random() * 0.3);
+    const initialSpeed = 0.9;
+    activeThorns.push({
+      x: startX,
+      y: startY,
+      vx: Math.cos(angle) * initialSpeed,
+      vy: Math.sin(angle) * initialSpeed,
+      r: 4.5,
+      life: 520,
+      maxLife: 520
+    });
+  }
+}
+
+// 領土確定・包囲計算（安全なアイテム処理パイプライン）
 function fillEnclosedArea() {
+  const prevPercent = currentAreaPercent;
   player.trail.forEach(pt => { grid[pt.y * GW + pt.x] = CLAIMED; });
 
   const visited = new Uint8Array(GW * GH);
@@ -763,6 +1060,7 @@ function fillEnclosedArea() {
     }
   }
 
+  // 岩の完全包囲粉砕チェック
   let rocksCleared = false;
   for (let y = 0; y < GH; y++) {
     for (let x = 0; x < GW; x++) {
@@ -792,14 +1090,12 @@ function fillEnclosedArea() {
   }
   if (rocksCleared) {
     screenShake = 5;
-    showBanner("🪨 邪魔な岩礁を完全包囲して粉砕！", "#38bdf8");
+    showBanner("🪨 邪魔な岩礁を包囲粉砕！", "#38bdf8");
   }
 
   const finalEnemies = [];
   survivingEnemies.forEach(e => {
-    const egx = Math.max(0, Math.min(GW - 1, Math.floor(e.x / CELL_SIZE)));
-    const egy = Math.max(0, Math.min(GH - 1, Math.floor(e.y / CELL_SIZE)));
-    if (grid[egy * GW + egx] === CLAIMED) {
+    if (isEnemyEnclosed(e)) {
       onEnemyKilled(e, spawnedMini);
     } else {
       finalEnemies.push(e);
@@ -807,17 +1103,37 @@ function fillEnclosedArea() {
   });
 
   spawnedMini.forEach(m => {
-    if (finalEnemies.length < 5) finalEnemies.push(m);
+    if (finalEnemies.length < 7) finalEnemies.push(m);
   });
   enemies = finalEnemies;
 
-  items = items.filter(it => {
+  // --- アイテムの安全な回収と発動 ---
+  // filterの内部で新アイテムをpushすると配列の参照が破壊・即死するため、
+  // 獲得されたアイテムをまずリストアップし、その後で安全に適用します。
+  const collectedItems = [];
+  const remainingItems = [];
+  for (let i = 0; i < items.length; i++) {
+    const it = items[i];
     if (grid[it.gy * GW + it.gx] === CLAIMED) {
-      applyItem(it);
-      return false;
+      collectedItems.push(it);
+    } else {
+      remainingItems.push(it);
     }
-    return true;
+  }
+  items = remainingItems;
+
+  // 回収したアイテムを順番に発動
+  collectedItems.forEach(it => {
+    applyItem(it);
   });
+
+  // 保留されていた新規アイテム（パンドラで生成されたもの等）を安全に展開
+  if (pendingItemsToSpawn.length > 0) {
+    pendingItemsToSpawn.forEach(task => {
+      spawnRandomItem(null, task.type, task.from);
+    });
+    pendingItemsToSpawn = [];
+  }
 
   if (portals.length === 2) {
     if (grid[portals[0].gy * GW + portals[0].gx] === CLAIMED ||
@@ -830,6 +1146,17 @@ function fillEnclosedArea() {
   sfx.playCut();
   updateStats();
 
+  // 大包囲による熱量冷却ボーナス
+  const gainedPercent = currentAreaPercent - prevPercent;
+  if (gainedPercent >= 8) {
+    heatMeter = Math.max(0, heatMeter - 45);
+    if (isOverheated && heatMeter === 0) {
+      isOverheated = false;
+      sfx.playCooldownComplete();
+    }
+    showBanner(`❄ 大包囲ボーナス！ (+${gainedPercent}%) エンジン熱を急速冷却！`, "#38bdf8");
+  }
+
   if (enemies.length === 0) showBanner("👾 敵を全滅！ステージ完全制覇！", "#38bdf8");
 
   if (currentAreaPercent >= stageTargetPercent || enemies.length === 0) {
@@ -837,12 +1164,15 @@ function fillEnclosedArea() {
   }
 }
 
-// ★変更点3: パンドラの箱の効果拡張（全8種のカオス効果）
+// パンドラの箱の効果
 function triggerPandoraChaos(it) {
   const pandoraRoll = Math.floor(Math.random() * 8);
+  const originPos = {
+    x: it.gx * CELL_SIZE + CELL_SIZE / 2,
+    y: it.gy * CELL_SIZE + CELL_SIZE / 2
+  };
 
   if (pandoraRoll === 0) {
-    // 1. スーパーノヴァ（超広範囲爆発塗り）
     sfx.playBuff();
     screenShake = 10;
     const cx = it.gx, cy = it.gy;
@@ -858,13 +1188,11 @@ function triggerPandoraChaos(it) {
       }
     }
     spawnParticles(cx * CELL_SIZE, cy * CELL_SIZE, '#facc15', 35);
-    showBanner("🌟 パンドラ【超新星爆発】超広範囲の領土を一網打尽！", "#facc15");
+    showBanner("🌟 パンドラ【超新星爆発】超広範囲の領土を一掃占領！", "#facc15");
 
   } else if (pandoraRoll === 1) {
-    // 2. 領土浸食の呪い（自陣の一部がEMPTYに戻される恐怖）
     sfx.playDebuff();
     screenShake = 8;
-    let revertedCount = 0;
     const rx = 4 + Math.floor(Math.random() * (GW - 8));
     const ry = 4 + Math.floor(Math.random() * (GH - 8));
     const radius = 9;
@@ -872,37 +1200,45 @@ function triggerPandoraChaos(it) {
       for (let dx = -radius; dx <= radius; dx++) {
         if (Math.hypot(dx, dy) <= radius) {
           const nx = rx + dx, ny = ry + dy;
-          // 外周境界線とプレイヤー現在地は保護
           if (nx > 2 && nx < GW - 3 && ny > 2 && ny < GH - 3) {
             if (!(nx === player.gx && ny === player.gy) && grid[ny * GW + nx] === CLAIMED) {
               grid[ny * GW + nx] = EMPTY;
-              revertedCount++;
             }
           }
         }
       }
     }
     spawnParticles(rx * CELL_SIZE, ry * CELL_SIZE, '#a855f7', 25);
-    showBanner("🌋 パンドラ【大地の呪い】獲得した領土が侵食されて消失！", "#c084fc");
+    showBanner("🌋 パンドラ【大地の呪い】領土が侵食され消失！", "#c084fc");
 
   } else if (pandoraRoll === 2) {
-    // 3. アイテムカーニバル（追加で3〜4個のアイテムが出現）
+    // ★パンドラ財宝の雨: 確実に3〜5個のアイテムを放物線アニメーションで飛ばす
     sfx.playBuff();
-    const addCount = 3 + Math.floor(Math.random() * 2);
-    for (let i = 0; i < addCount; i++) {
-      spawnRandomItem();
+    const spawnCount = 3 + Math.floor(Math.random() * 3); // 3〜5個
+    const availableCells = getAllValidEmptyCells(true);
+
+    if (availableCells.length > 0) {
+      // ランダムにセルをシャッフル
+      availableCells.sort(() => Math.random() - 0.5);
+      const actualCount = Math.min(spawnCount, availableCells.length);
+
+      for (let i = 0; i < actualCount; i++) {
+        const targetCell = availableCells[i];
+        spawnRandomItem(targetCell, null, originPos);
+      }
+      showBanner(`💎 パンドラ【財宝の雨】${actualCount}個の秘宝が盤面に舞い散った！`, "#38bdf8");
+    } else {
+      showBanner("💎 パンドラ【財宝の雨】しかし出現する空き地がない！", "#94a3b8");
     }
-    showBanner(`💎 パンドラ【財宝の雨】アイテムが新たに${addCount}個出現！`, "#38bdf8");
 
   } else if (pandoraRoll === 3) {
-    // 4. モンスターハウス（敵が2体増援・最大5体まで）
     sfx.playDebuff();
     screenShake = 9;
     const baseSpeed = 1.6 + Math.min(1.2, currentStage * 0.08);
     const types = ['FAST', 'HUNTER', 'SNAKE', 'RIM'];
     let added = 0;
     for (let i = 0; i < 2; i++) {
-      if (enemies.length < 5) {
+      if (enemies.length < 6) {
         enemies.push(createEnemyByType(types[Math.floor(Math.random() * types.length)], baseSpeed));
         added++;
       }
@@ -910,14 +1246,12 @@ function triggerPandoraChaos(it) {
     showBanner(`🚨 パンドラ【凶宴】空間が裂け、敵が${added}体追加召喚された！`, "#ef4444");
 
   } else if (pandoraRoll === 4) {
-    // 5. 超神速ゴッドスピード（7秒間ディレイ1・超速）
     sfx.playBuff();
-    player.speedDelay = 1;
-    setTimeout(() => { player.speedDelay = player.baseDelay; }, 7000);
-    showBanner("⚡ パンドラ【神速の加護】7秒間、超高速移動モード発動！", "#facc15");
+    heatMeter = 0;
+    isOverheated = false;
+    showBanner("⚡ パンドラ【冷却オーバードライブ】エンジン完全冷却！", "#facc15");
 
   } else if (pandoraRoll === 5) {
-    // 6. 十文字メガレーザー（縦・横ラインを一括領土化）
     sfx.playBuff();
     screenShake = 6;
     for (let x = 0; x < GW; x++) {
@@ -926,34 +1260,31 @@ function triggerPandoraChaos(it) {
     for (let y = 0; y < GH; y++) {
       if (grid[y * GW + it.gx] !== ROCK) grid[y * GW + it.gx] = CLAIMED;
     }
-    showBanner("✂ パンドラ【十字メガレーザー】縦横全ラインを一刀両断！", "#22c55e");
+    showBanner("✂ パンドラ【十文字レーザー】十字ラインを一網打尽！", "#22c55e");
 
   } else if (pandoraRoll === 6) {
-    // 7. メテオフォール（ランダム地点に巨大な岩塊が落下）
     sfx.playHit();
     screenShake = 7;
     const mx = 8 + Math.floor(Math.random() * (GW - 16));
     const my = 12 + Math.floor(Math.random() * (GH - 24));
     placeRockCluster(mx, my, 4);
     spawnParticles(mx * CELL_SIZE, my * CELL_SIZE, '#64748b', 24);
-    showBanner("🪨 パンドラ【隕石飛来】巨大アステロイドが盤面に落着！", "#94a3b8");
+    showBanner("🪨 パンドラ【隕石飛来】アステロイドが落着！", "#94a3b8");
 
   } else {
-    // 8. エリクサーの奇跡（ライフ全回復＆無敵バリア）
     sfx.playBuff();
-    lives = 5;
-    player.invincibleTimer = 360; // 6秒
-    showBanner("💖 パンドラ【不死鳥の涙】ライフ全快＋6秒間完全無敵！", "#ec4899");
+    lives = Math.min(5, lives + 2);
+    showBanner("💖 パンドラ【生命の奇跡】ライフが2つ回復！", "#ec4899");
   }
 }
 
 function applyItem(it) {
-  spawnParticles(it.gx * CELL_SIZE, it.gy * CELL_SIZE, '#facc15', 15);
+  spawnParticles(it.gx * CELL_SIZE + CELL_SIZE / 2, it.gy * CELL_SIZE + CELL_SIZE / 2, '#facc15', 15);
   if (it.type === 'SPEED_UP') {
     sfx.playBuff();
     player.speedDelay = 1;
-    setTimeout(() => { player.speedDelay = player.baseDelay; }, 7500);
-    showBanner("⚡ ターボブースト！(7.5秒間高速化)", "#facc15");
+    setTimeout(() => { player.speedDelay = player.baseDelay; }, 7000);
+    showBanner("⚡ ターボブースト！(7秒間基礎巡航速度UP)", "#facc15");
   } else if (it.type === 'FREEZE') {
     sfx.playBuff();
     enemies.forEach(e => { e.savedVx = e.vx; e.savedVy = e.vy; e.vx = 0; e.vy = 0; });
@@ -964,8 +1295,8 @@ function applyItem(it) {
           e.vy = e.savedVy || 1.5;
         }
       });
-    }, 4800);
-    showBanner("❄ 絶対零度！敵が4.8秒間完全停止！", "#38bdf8");
+    }, 4500);
+    showBanner("❄ 絶対零度！敵が4.5秒間完全停止！", "#38bdf8");
   } else if (it.type === 'BOMB') {
     sfx.playKill();
     screenShake = 8;
@@ -980,8 +1311,8 @@ function applyItem(it) {
     showBanner("💖 ライフが1つ回復した！", "#f43f5e");
   } else if (it.type === 'SHIELD') {
     sfx.playBuff();
-    player.invincibleTimer = 330;
-    showBanner("🛡 無敵バリア展開！(5.5秒間敵を弾く)", "#a855f7");
+    player.invincibleTimer = 300;
+    showBanner("🛡 無敵バリア！(5秒間敵を弾く)", "#a855f7");
   } else if (it.type === 'CUTTER') {
     sfx.playBuff();
     for (let x = 2; x < GW - 2; x++) {
@@ -990,6 +1321,8 @@ function applyItem(it) {
       }
     }
     showBanner("✂ 水平カッターで横ラインを領土化！", "#22c55e");
+  } else if (it.type === 'THORN') {
+    spawnSpikeNeedles(it.gx, it.gy);
   } else if (it.type === 'PANDORA') {
     triggerPandoraChaos(it);
   }
@@ -999,13 +1332,15 @@ function applyItem(it) {
 function handleStageClear() {
   isPlaying = false;
   touchGuide.active = false;
+  isBoosting = false;
   sfx.playClear();
   currentStage++;
   if (currentStage > highestStage) highestStage = currentStage;
 
   ovTitle.textContent = `🎉 STAGE ${currentStage - 1} CLEAR!`;
   ovDesc.textContent = `占領率 ${currentAreaPercent}% 達成！
-次は『STAGE ${currentStage}』のランダム生成マップへ挑みます。`;
+次のステージへ進みます。
+オーバーヒートに気をつけてブーストを活用しよう！`;
   startBtn.textContent = `STAGE ${currentStage} へ進む`;
   overlay.style.display = 'flex';
 }
@@ -1023,13 +1358,14 @@ function handleDeath() {
   player.trail = [];
   player.vx = 0; player.vy = 0;
   player.nextVx = 0; player.nextVy = 0;
+  isBoosting = false;
 
   if (lives <= 0) {
     isPlaying = false;
     touchGuide.active = false;
     ovTitle.textContent = 'GAME OVER';
     ovDesc.textContent = `到達ステージ: STAGE ${currentStage} (最高記録: STAGE ${highestStage})
-敵を狭い隙間に反射させて閉じ込めよう！`;
+ブースト加速中も無敵ではないため、敵の進路予測が重要です！`;
     startBtn.textContent = 'STAGE 1 から再挑戦';
     overlay.style.display = 'flex';
     currentStage = 1;
@@ -1060,15 +1396,43 @@ function handleDeath() {
   }
 }
 
+// プレイヤー更新＆オーバーヒート・熱力学シミュレーション
 function updatePlayer() {
   if (player.invincibleTimer > 0) player.invincibleTimer--;
   if (player.warpCooldown > 0) player.warpCooldown--;
 
+  // ヒートメーター＆オーバーヒートの処理
+  if (isBoosting && !isOverheated) {
+    heatMeter += HEAT_GENERATE_RATE;
+    if (Math.random() < 0.35) {
+      spawnParticles(player.gx * CELL_SIZE + CELL_SIZE / 2, player.gy * CELL_SIZE + CELL_SIZE / 2, '#f97316', 2);
+    }
+    if (heatMeter >= 100) {
+      heatMeter = 100;
+      isOverheated = true;
+      isBoosting = false;
+      sfx.playOverheat();
+      screenShake = 6;
+      showBanner("🔥 OVERHEAT!! ブースト使用不可＆冷却中！", "#ef4444");
+    }
+  } else {
+    const coolingRate = isOverheated ? HEAT_COOL_PENALTY : HEAT_COOL_NORMAL;
+    if (heatMeter > 0) {
+      heatMeter = Math.max(0, heatMeter - coolingRate);
+      if (isOverheated && heatMeter === 0) {
+        isOverheated = false;
+        sfx.playCooldownComplete();
+        showBanner("❄ 冷却完了！ ブーストが再使用可能になりました！", "#38bdf8");
+      }
+    }
+  }
+
   const onMud = (grid[player.gy * GW + player.gx] === MUD);
-  const currentDelay = onMud ? player.speedDelay + 2 : player.speedDelay;
+  let effectiveDelay = (isBoosting && !isOverheated) ? 1 : player.speedDelay;
+  if (onMud) effectiveDelay += 2;
 
   player.speedCounter++;
-  if (player.speedCounter % currentDelay !== 0) return;
+  if (player.speedCounter % effectiveDelay !== 0) return;
 
   if (player.nextVx !== 0 || player.nextVy !== 0) {
     player.vx = player.nextVx;
@@ -1095,7 +1459,7 @@ function updatePlayer() {
   player.gx = nx;
   player.gy = ny;
 
-  // プレイヤーのワープ判定
+  // ポータル通過
   if (portals.length === 2 && player.warpCooldown === 0) {
     const p0 = portals[0], p1 = portals[1];
     if (Math.hypot(player.gx - p0.gx, player.gy - p0.gy) <= 2) {
@@ -1103,13 +1467,11 @@ function updatePlayer() {
       player.gx = p1.gx; player.gy = p1.gy;
       player.warpCooldown = 30;
       spawnParticles(player.gx * CELL_SIZE, player.gy * CELL_SIZE, p1.color, 12);
-      showBanner("🌀 ワームホールで空間跳躍！", "#06b6d4");
     } else if (Math.hypot(player.gx - p1.gx, player.gy - p1.gy) <= 2) {
       sfx.playWarp();
       player.gx = p0.gx; player.gy = p0.gy;
       player.warpCooldown = 30;
       spawnParticles(player.gx * CELL_SIZE, player.gy * CELL_SIZE, p0.color, 12);
-      showBanner("🌀 ワームホールで空間跳躍！", "#f97316");
     }
   }
 
@@ -1125,11 +1487,250 @@ function updatePlayer() {
     player.trail.push({ x: player.gx, y: player.gy });
     sfx.playLine();
   }
+  updateStats();
+}
+
+// 棘（Thorn）の挙動＆敵への命中判定
+function updateThorns() {
+  for (let i = activeThorns.length - 1; i >= 0; i--) {
+    const th = activeThorns[i];
+    th.life--;
+    if (th.life <= 0) {
+      spawnParticles(th.x, th.y, '#94a3b8', 6);
+      activeThorns.splice(i, 1);
+      continue;
+    }
+
+    if (enemies.length > 0) {
+      let nearestDist = Infinity;
+      let target = null;
+      for (const e of enemies) {
+        const d = Math.hypot(e.x - th.x, e.y - th.y);
+        if (d < nearestDist) {
+          nearestDist = d;
+          target = e;
+        }
+      }
+      if (target) {
+        const angle = Math.atan2(target.y - th.y, target.x - th.x);
+        th.vx += Math.cos(angle) * 0.045;
+        th.vy += Math.sin(angle) * 0.045;
+      }
+    }
+
+    const spd = Math.hypot(th.vx, th.vy);
+    if (spd > 1.6) {
+      th.vx = (th.vx / spd) * 1.6;
+      th.vy = (th.vy / spd) * 1.6;
+    }
+
+    th.x += th.vx;
+    th.y += th.vy;
+
+    if (th.x < th.r) { th.x = th.r; th.vx = Math.abs(th.vx); }
+    if (th.x > GW * CELL_SIZE - th.r) { th.x = GW * CELL_SIZE - th.r; th.vx = -Math.abs(th.vx); }
+    if (th.y < th.r) { th.y = th.r; th.vy = Math.abs(th.vy); }
+    if (th.y > GH * CELL_SIZE - th.r) { th.y = GH * CELL_SIZE - th.r; th.vy = -Math.abs(th.vy); }
+
+    let hitEnemy = false;
+    for (let j = enemies.length - 1; j >= 0; j--) {
+      const e = enemies[j];
+      const dist = Math.hypot(e.x - th.x, e.y - th.y);
+      if (dist < e.r + th.r) {
+        sfx.playThornHit();
+        sfx.playKill();
+        screenShake = 7;
+        spawnParticles(e.x, e.y, '#f59e0b', 26);
+        showBanner(`📌 棘が命中！ ${e.name} を迎撃破壊！`, "#f59e0b");
+
+        enemies.splice(j, 1);
+        activeThorns.splice(i, 1);
+        hitEnemy = true;
+        updateStats();
+
+        if (enemies.length === 0) handleStageClear();
+        break;
+      }
+    }
+    if (hitEnemy) continue;
+  }
+}
+
+// 飛翔中アイテムの更新（放物線を描いて着地し実体化）
+function updateFlyingItems() {
+  for (let i = flyingItems.length - 1; i >= 0; i--) {
+    const fi = flyingItems[i];
+    fi.progress += fi.speed;
+
+    // 線形補間 + 放物線
+    const t = Math.min(1.0, fi.progress);
+    fi.x = fi.startX + (fi.targetX - fi.startX) * t;
+    const baseLinearY = fi.startY + (fi.targetY - fi.startY) * t;
+    const arc = Math.sin(t * Math.PI) * fi.arcHeight;
+    fi.y = baseLinearY - arc;
+
+    // 飛翔の軌跡パーティクル
+    if (Math.random() < 0.4) {
+      particles.push({
+        x: fi.x, y: fi.y,
+        vx: (Math.random() - 0.5) * 0.5,
+        vy: (Math.random() - 0.5) * 0.5,
+        life: 14,
+        color: '#facc15',
+        size: 2
+      });
+    }
+
+    // 着地判定
+    if (fi.progress >= 1.0) {
+      sfx.playItemPop();
+      spawnParticles(fi.targetX, fi.targetY, '#38bdf8', 12);
+      items.push({
+        gx: fi.targetGx,
+        gy: fi.targetGy,
+        type: fi.type,
+        icon: fi.icon,
+        name: fi.name,
+        spawnAnim: 1.0
+      });
+      flyingItems.splice(i, 1);
+    }
+  }
 }
 
 function updateEnemies() {
+  const pRealX = player.gx * CELL_SIZE + CELL_SIZE / 2;
+  const pRealY = player.gy * CELL_SIZE + CELL_SIZE / 2;
+
+  // 線を引いて出撃中の近接危険アラート
+  if (!player.inClaimed && player.trail.length > 0) {
+    let closestEnemyDist = Infinity;
+    for (const e of enemies) {
+      const d = Math.hypot(e.x - pRealX, e.y - pRealY);
+      if (d < closestEnemyDist) closestEnemyDist = d;
+    }
+    if (closestEnemyDist < 35) {
+      dangerBeepCooldown--;
+      if (dangerBeepCooldown <= 0) {
+        sfx.playDangerWarning();
+        dangerBeepCooldown = 14;
+      }
+    }
+  }
+
+  // ボスの吐き出し攻撃
   enemies.forEach(e => {
-    if (e.vx === 0 && e.vy === 0) return;
+    if (e.type === 'BOSS') {
+      e.spitTimer--;
+      if (e.spitTimer <= 45) {
+        e.chargeTimer = (e.chargeTimer || 0) + 1;
+        if (Math.random() < 0.4) spawnParticles(e.x, e.y, '#f59e0b', 2);
+      }
+      if (e.spitTimer <= 0) {
+        e.spitTimer = 220 + Math.floor(Math.random() * 80);
+        e.chargeTimer = 0;
+        screenShake = 7;
+        spawnParticles(e.x, e.y, '#ef4444', 20);
+
+        const spitRoll = Math.random();
+        if (spitRoll < 0.38) {
+          spawnRandomItem(null, null, { x: e.x, y: e.y });
+          showBanner("👑 ボスが秘宝アイテムを吐き出した！", "#38bdf8");
+        } else if (spitRoll < 0.72) {
+          const rx = Math.max(3, Math.min(GW - 4, Math.floor(e.x / CELL_SIZE)));
+          const ry = Math.max(3, Math.min(GH - 4, Math.floor(e.y / CELL_SIZE)));
+          placeRockCluster(rx, ry, 2);
+          showBanner("👑 ボスが巨石を吐き出して障害物を形成！", "#94a3b8");
+        } else {
+          if (enemies.length < 7) {
+            const types = ['FAST', 'SNAKE'];
+            const spawnedType = types[Math.floor(Math.random() * types.length)];
+            const baseSpeed = 1.6 + Math.min(1.0, currentStage * 0.08);
+            const baby = createEnemyByType(spawnedType, baseSpeed, { x: e.x, y: e.y }, { vx: -e.vx * 1.3, vy: -e.vy * 1.3 });
+            enemies.push(baby);
+            showBanner(`👑 ボスが護衛【${baby.name}】を産み落とした！`, "#f43f5e");
+          }
+        }
+      }
+    }
+  });
+
+  // 敵同士の衝突
+  for (let i = 0; i < enemies.length; i++) {
+    const e1 = enemies[i];
+    if (e1.splitCooldown > 0) e1.splitCooldown--;
+    if (e1.mergeCooldown > 0) e1.mergeCooldown--;
+
+    for (let j = i + 1; j < enemies.length; j++) {
+      const e2 = enemies[j];
+      const dx = e2.x - e1.x;
+      const dy = e2.y - e1.y;
+      const dist = Math.hypot(dx, dy);
+      const minDist = e1.r + e2.r;
+
+      if (dist < minDist && dist > 0.001) {
+        if (e1.type === 'MINI' && e2.type === 'MINI' && e1.mergeCooldown === 0 && e2.mergeCooldown === 0) {
+          screenShake = 6;
+          const mx = (e1.x + e2.x) / 2;
+          const my = (e1.y + e2.y) / 2;
+          spawnParticles(mx, my, '#10b981', 25);
+          showBanner("🟢 ミニセル同士が合体！スプリッターが復活！", "#10b981");
+
+          enemies.splice(j, 1);
+          enemies.splice(i, 1);
+          const baseSpeed = 1.55 + Math.min(1.2, currentStage * 0.08);
+          const merged = createEnemyByType('SPLITTER', baseSpeed, { x: mx, y: my });
+          merged.splitCooldown = 70;
+          enemies.push(merged);
+          updateStats();
+          return;
+        }
+
+        if (e1.type === 'SPLITTER' && e1.splitCooldown === 0 && enemies.length < 7) {
+          screenShake = 7;
+          spawnParticles(e1.x, e1.y, '#10b981', 22);
+          showBanner("💥 スプリッターが衝突分裂した！", "#10b981");
+          enemies.splice(i, 1);
+          const baseSpeed = 1.6 + Math.min(1.2, currentStage * 0.08);
+          enemies.push(createEnemyByType('MINI', baseSpeed, { x: e1.x - 7, y: e1.y }, { vx: -e1.vx * 1.2, vy: -e1.vy }));
+          enemies.push(createEnemyByType('MINI', baseSpeed, { x: e1.x + 7, y: e1.y }, { vx: e1.vx * 1.2, vy: e1.vy }));
+          updateStats();
+          return;
+        } else if (e2.type === 'SPLITTER' && e2.splitCooldown === 0 && enemies.length < 7) {
+          screenShake = 7;
+          spawnParticles(e2.x, e2.y, '#10b981', 22);
+          showBanner("💥 スプリッターが衝突分裂した！", "#10b981");
+          enemies.splice(j, 1);
+          const baseSpeed = 1.6 + Math.min(1.2, currentStage * 0.08);
+          enemies.push(createEnemyByType('MINI', baseSpeed, { x: e2.x - 7, y: e2.y }, { vx: -e2.vx * 1.2, vy: -e2.vy }));
+          enemies.push(createEnemyByType('MINI', baseSpeed, { x: e2.x + 7, y: e2.y }, { vx: e2.vx * 1.2, vy: e2.vy }));
+          updateStats();
+          return;
+        }
+
+        const nx = dx / dist;
+        const ny = dy / dist;
+        const overlap = (minDist - dist) * 0.5;
+        e1.x -= nx * overlap;
+        e1.y -= ny * overlap;
+        e2.x += nx * overlap;
+        e2.y += ny * overlap;
+
+        const kx = e1.vx - e2.vx;
+        const ky = e1.vy - e2.vy;
+        const p = 2 * (nx * kx + ny * ky) / 2;
+        e1.vx -= p * nx;
+        e1.vy -= p * ny;
+        e2.vx += p * nx;
+        e2.vy += p * ny;
+      }
+    }
+  }
+
+  // 敵の移動・衝突
+  for (let i = enemies.length - 1; i >= 0; i--) {
+    const e = enemies[i];
+    if (e.vx === 0 && e.vy === 0) continue;
     if (e.warpCooldown > 0) e.warpCooldown--;
 
     const egx = Math.max(0, Math.min(GW - 1, Math.floor(e.x / CELL_SIZE)));
@@ -1137,7 +1738,6 @@ function updateEnemies() {
     const inMud = (grid[egy * GW + egx] === MUD);
     const mudFactor = inMud ? 0.55 : 1.0;
 
-    // ★変更点1: 敵のワープゾーン通過判定
     if (portals.length === 2 && e.warpCooldown === 0) {
       const p0 = portals[0], p1 = portals[1];
       const p0x = p0.gx * CELL_SIZE + CELL_SIZE / 2;
@@ -1146,25 +1746,14 @@ function updateEnemies() {
       const p1y = p1.gy * CELL_SIZE + CELL_SIZE / 2;
 
       if (Math.hypot(e.x - p0x, e.y - p0y) < e.r + 7) {
-        sfx.playWarp();
-        spawnParticles(e.x, e.y, p0.color, 10);
-        e.x = p1x;
-        e.y = p1y;
+        e.x = p1x; e.y = p1y;
         e.warpCooldown = 40;
-        spawnParticles(e.x, e.y, p1.color, 14);
-        showBanner(`🌀 ${e.name} がワープホールに吸い込まれた！`, "#38bdf8");
       } else if (Math.hypot(e.x - p1x, e.y - p1y) < e.r + 7) {
-        sfx.playWarp();
-        spawnParticles(e.x, e.y, p1.color, 10);
-        e.x = p0x;
-        e.y = p0y;
+        e.x = p0x; e.y = p0y;
         e.warpCooldown = 40;
-        spawnParticles(e.x, e.y, p0.color, 14);
-        showBanner(`🌀 ${e.name} がワープホールに吸い込まれた！`, "#f97316");
       }
     }
 
-    // 各敵タイプの独自AI行動
     if (e.type === 'SNAKE') {
       e.waveTimer = (e.waveTimer || 0) + 0.1;
       e.vx += Math.cos(e.waveTimer) * 0.08;
@@ -1195,10 +1784,8 @@ function updateEnemies() {
     } else if (e.type === 'WARPER') {
       e.selfWarpTimer = (e.selfWarpTimer || 240) - 1;
       if (e.selfWarpTimer <= 0) {
-        spawnParticles(e.x, e.y, '#a855f7', 10);
         const wp = findSafeEnemySpawn(e.r);
         e.x = wp.x; e.y = wp.y;
-        spawnParticles(e.x, e.y, '#a855f7', 10);
         e.selfWarpTimer = 240 + Math.floor(Math.random() * 90);
       }
     }
@@ -1213,7 +1800,6 @@ function updateEnemies() {
 
     const gx = Math.floor(e.x / CELL_SIZE);
     const gy = Math.floor(e.y / CELL_SIZE);
-
     const checkRadius = Math.ceil(e.r / CELL_SIZE) + 1;
     let bouncedX = false, bouncedY = false;
 
@@ -1255,16 +1841,18 @@ function updateEnemies() {
       }
     }
 
-    const pRealX = player.gx * CELL_SIZE + CELL_SIZE / 2;
-    const pRealY = player.gy * CELL_SIZE + CELL_SIZE / 2;
-    if (!player.inClaimed && Math.hypot(e.x - pRealX, e.y - pRealY) < e.r + CELL_SIZE * 0.5) {
-      if (player.invincibleTimer > 0) {
-        e.vx *= -1; e.vy *= -1;
-      } else {
-        handleDeath();
+    const playerDist = Math.hypot(e.x - pRealX, e.y - pRealY);
+    if (playerDist < e.r + CELL_SIZE * 0.8) {
+      if (!player.inClaimed) {
+        if (player.invincibleTimer > 0) {
+          e.vx *= -1; e.vy *= -1;
+        } else {
+          handleDeath();
+          return;
+        }
       }
     }
-  });
+  }
 }
 
 function draw() {
@@ -1280,6 +1868,7 @@ function draw() {
   ctx.fillStyle = stageTheme.bg;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
+  // マップグリッド描画
   for (let y = 0; y < GH; y++) {
     for (let x = 0; x < GW; x++) {
       const c = grid[y * GW + x];
@@ -1287,7 +1876,11 @@ function draw() {
         ctx.fillStyle = ((x ^ y) % 5 === 0) ? stageTheme.landAccent : stageTheme.landBase;
         ctx.fillRect(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE);
       } else if (c === TRAIL) {
-        ctx.fillStyle = '#22c55e';
+        if (dangerBeepCooldown > 0 && Math.floor(Date.now() / 80) % 2 === 0) {
+          ctx.fillStyle = '#ef4444';
+        } else {
+          ctx.fillStyle = '#22c55e';
+        }
         ctx.fillRect(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE);
       } else if (c === ROCK) {
         ctx.fillStyle = (x + y) % 2 === 0 ? '#475569' : '#1e293b';
@@ -1303,7 +1896,7 @@ function draw() {
     }
   }
 
-  // ポータル描画（渦巻きアニメーション）
+  // ポータル
   const pulse = Math.sin(Date.now() * 0.008) * 2;
   portals.forEach(p => {
     const px = p.gx * CELL_SIZE + CELL_SIZE / 2;
@@ -1323,14 +1916,61 @@ function draw() {
     ctx.restore();
   });
 
-  // アイテム描画
+  // アイテム描画（未開拓のオープン領域の上に明瞭に表示）
   items.forEach(it => {
     const ix = it.gx * CELL_SIZE + CELL_SIZE / 2;
     const iy = it.gy * CELL_SIZE + CELL_SIZE / 2;
+    ctx.save();
     ctx.font = '13px sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText(it.icon, ix, iy);
+    if (it.spawnAnim > 0) {
+      it.spawnAnim -= 0.04;
+      const s = 1 + it.spawnAnim * 1.6;
+      ctx.translate(ix, iy);
+      ctx.scale(s, s);
+      ctx.fillText(it.icon, 0, 0);
+    } else {
+      ctx.fillText(it.icon, ix, iy);
+    }
+    ctx.restore();
+  });
+
+  // 飛翔中アイテムの描画（パンドラの箱から放出中）
+  flyingItems.forEach(fi => {
+    ctx.save();
+    ctx.translate(fi.x, fi.y);
+    ctx.font = '16px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.shadowBlur = 12;
+    ctx.shadowColor = '#facc15';
+    ctx.fillText(fi.icon, 0, 0);
+    ctx.restore();
+  });
+
+  // 棘（Thorn/Needle）の描画
+  activeThorns.forEach(th => {
+    ctx.save();
+    ctx.translate(th.x, th.y);
+    const angle = Math.atan2(th.vy, th.vx);
+    ctx.rotate(angle);
+
+    ctx.beginPath();
+    ctx.moveTo(th.r * 1.8, 0);
+    ctx.lineTo(-th.r, -th.r * 0.8);
+    ctx.lineTo(-th.r * 0.5, 0);
+    ctx.lineTo(-th.r, th.r * 0.8);
+    ctx.closePath();
+
+    ctx.fillStyle = '#38bdf8';
+    ctx.shadowBlur = 9;
+    ctx.shadowColor = '#0284c7';
+    ctx.fill();
+
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(-th.r * 0.3, -1, th.r * 1.4, 2);
+    ctx.restore();
   });
 
   // 敵描画
@@ -1372,11 +2012,19 @@ function draw() {
       ctx.lineTo(e.r * 0.6, -e.r * 0.8);
       ctx.closePath();
       ctx.fill();
+
+      if (e.spitTimer <= 45) {
+        ctx.strokeStyle = (Math.floor(Date.now() / 50) % 2 === 0) ? '#f59e0b' : '#ef4444';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(0, 0, e.r + 4 + Math.sin(Date.now() * 0.05) * 3, 0, Math.PI * 2);
+        ctx.stroke();
+      }
     }
     ctx.restore();
   });
 
-  // パーティクル描画
+  // パーティクル
   for (let i = particles.length - 1; i >= 0; i--) {
     const pt = particles[i];
     pt.x += pt.vx;
@@ -1392,15 +2040,38 @@ function draw() {
   // プレイヤー描画
   const px = player.gx * CELL_SIZE;
   const py = player.gy * CELL_SIZE;
-  ctx.fillStyle = player.invincibleTimer > 0 ? (Math.floor(Date.now() / 60) % 2 === 0 ? '#ec4899' : '#fff') : '#fde047';
-  ctx.shadowBlur = 10;
-  ctx.shadowColor = player.invincibleTimer > 0 ? '#ec4899' : '#facc15';
+
+  if (isBoosting && !isOverheated) {
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(px + CELL_SIZE / 2, py + CELL_SIZE / 2, CELL_SIZE * 1.8, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(56, 189, 248, 0.35)';
+    ctx.shadowBlur = 12;
+    ctx.shadowColor = '#0284c7';
+    ctx.fill();
+    ctx.restore();
+  }
+
+  if (isOverheated) {
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(px + CELL_SIZE / 2, py + CELL_SIZE / 2, CELL_SIZE * 1.5, 0, Math.PI * 2);
+    ctx.fillStyle = (Math.floor(Date.now() / 90) % 2 === 0) ? 'rgba(239, 68, 68, 0.4)' : 'rgba(249, 115, 22, 0.3)';
+    ctx.fill();
+    ctx.restore();
+  }
+
+  ctx.fillStyle = isOverheated ? '#ef4444' :
+                 (player.invincibleTimer > 0 ? (Math.floor(Date.now() / 60) % 2 === 0 ? '#ec4899' : '#fff') :
+                 (isBoosting ? '#38bdf8' : '#fde047'));
+  ctx.shadowBlur = isBoosting ? 12 : 6;
+  ctx.shadowColor = isOverheated ? '#ef4444' : (isBoosting ? '#0284c7' : '#facc15');
   ctx.fillRect(px - 1, py - 1, CELL_SIZE + 2, CELL_SIZE + 2);
   ctx.shadowBlur = 0;
   ctx.fillStyle = '#0f172a';
   ctx.fillRect(px + 1, py + 1, 2, 2);
 
-  // フローティング・タッチガイド
+  // タッチガイド
   if (touchGuide.active && isPlaying) {
     ctx.save();
     ctx.beginPath();
@@ -1429,6 +2100,8 @@ function draw() {
 function gameLoop() {
   if (isPlaying) {
     updatePlayer();
+    updateFlyingItems();
+    updateThorns();
     updateEnemies();
     draw();
   }
@@ -1444,15 +2117,28 @@ function setDirection(x, y) {
   player.nextVy = y;
 }
 
+// 操作系イベント
 window.addEventListener('keydown', e => {
   if (!isPlaying && (e.code === 'Space' || e.code === 'Enter')) {
     triggerStartGame();
+    return;
+  }
+  if (e.code === 'Space') {
+    if (!isOverheated) isBoosting = true;
+    e.preventDefault();
     return;
   }
   if (['ArrowUp', 'KeyW'].includes(e.code)) { setDirection(0, -1); e.preventDefault(); }
   if (['ArrowDown', 'KeyS'].includes(e.code)) { setDirection(0, 1); e.preventDefault(); }
   if (['ArrowLeft', 'KeyA'].includes(e.code)) { setDirection(-1, 0); e.preventDefault(); }
   if (['ArrowRight', 'KeyD'].includes(e.code)) { setDirection(1, 0); e.preventDefault(); }
+});
+
+window.addEventListener('keyup', e => {
+  if (e.code === 'Space') {
+    isBoosting = false;
+    e.preventDefault();
+  }
 });
 
 function getCanvasCoords(clientX, clientY) {
@@ -1464,6 +2150,7 @@ function getCanvasCoords(clientX, clientY) {
 }
 
 let touchStartX = 0, touchStartY = 0;
+let lastTapTime = 0;
 
 canvas.addEventListener('touchstart', e => {
   if (!isPlaying) return;
@@ -1477,6 +2164,12 @@ canvas.addEventListener('touchstart', e => {
   touchGuide.y = cPos.y;
   touchGuide.curX = cPos.x;
   touchGuide.curY = cPos.y;
+
+  const now = Date.now();
+  if (now - lastTapTime < 280) {
+    if (!isOverheated) isBoosting = !isBoosting;
+  }
+  lastTapTime = now;
 }, { passive: false });
 
 canvas.addEventListener('touchmove', e => {
@@ -1503,6 +2196,20 @@ canvas.addEventListener('touchmove', e => {
 canvas.addEventListener('touchend', () => {
   touchGuide.active = false;
 }, { passive: true });
+
+// ブーストボタン（ホールド式）
+const startBoost = (e) => {
+  e.preventDefault();
+  if (!isOverheated) isBoosting = true;
+};
+const stopBoost = (e) => {
+  e.preventDefault();
+  isBoosting = false;
+};
+boostBtn.addEventListener('mousedown', startBoost);
+window.addEventListener('mouseup', stopBoost);
+boostBtn.addEventListener('touchstart', startBoost, { passive: false });
+window.addEventListener('touchend', stopBoost, { passive: false });
 
 let lastStartTime = 0;
 function triggerStartGame(e) {
